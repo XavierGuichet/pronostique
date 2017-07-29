@@ -35,6 +35,8 @@ class Pronostique_Public
      */
     private $version;
 
+    private  $templater;
+
     private $table_user;
     private $table_tips;
     private $gain_sql;
@@ -57,6 +59,7 @@ class Pronostique_Public
         $this->table_user = $wpdb->prefix.'users';
 
         $this->table_tips = $wpdb->prefix.'bmk_tips';
+        $this->templater = new TemplateEngine(__DIR__);
     }
 
     /**
@@ -125,7 +128,6 @@ class Pronostique_Public
 
         add_shortcode('user-stats-side', array($this, 'sc_displayUserStatsSide'));
 
-        add_shortcode('listParisTipsterParMois', array($this, 'sc_displayListParisTipsterParMois'));
 
         add_shortcode('user-perf-summary', array($this, 'sc_displayUserPerfSummary'));
         add_shortcode('history-graph', array($this, 'sc_displayHistoryGraph'));
@@ -134,6 +136,7 @@ class Pronostique_Public
 
         // add_shortcode('stats-tipsters-side', 'getTipsterStatsSide');
 
+        add_shortcode('listParisTipsterParMois', array($this, 'deprecated'));
         add_shortcode('liste-top-tipsers-mois', array($this, 'deprecated'));
         add_shortcode('liste-prono-experts', array($this, 'deprecated')); //getPronosExperts
         add_shortcode('liste-paris-experts',  array($this, 'deprecated'));
@@ -174,25 +177,12 @@ class Pronostique_Public
         }
         $graph_data = array_reverse($graph_data);
 
-        return $this->displayHistoryGraph($graph_data);
+        $emptylabels = implode(',',array_fill(0,count($graph_data),"''"));
+        $graphdata = implode(',', $graph_data);
 
-        // $res = $wpdb->get_results($sql);
-        // $res = array_reverse($res);
-        // $datas = array();
-        //
-        // foreach ($res as $tip) {
-        //     $profit = 0;
-        //     if ($tip->tips_resultat == 1) {
-        //         $profit = ($tip->tips_mise * ($tip->tips_cote - 1));
-        //     } elseif ($tip->tips_resultat == 2) {
-        //         $profit = -$tip->tips_mise;
-        //     }
-        //
-        //     $previous = end(array_values($datas)) ? end(array_values($datas)) : 0;
-        //     $datas[] = $previous + $profit;
-        // }
-        //
-        // return $datas;
+        return $this->templater->display('history-graph',
+                        array('labels' => $emptylabels,
+                              'graphdata' => $graphdata));
     }
 
     public function sc_displayUserPerfSummary($atts = [], $content = null, $tag = '') {
@@ -221,9 +211,12 @@ class Pronostique_Public
             $month_profit = $user_month_profit->field('gain');
         }
 
-
         $yield = Calculator::Yield( $stats->field('mises'), $stats->field('gain'));
-        return $this->displayUserPerfSummary($stats,$month_profit, $yield);
+
+        return $this->templater->display('user-perf-summary',
+                            array('stats' => $stats,
+                                  'month_profit' => $month_profit,
+                                  'yield' => $yield ));
     }
 
     public function sc_displayUserHistoryPagination($atts = [], $content = null, $tag = '') {
@@ -242,49 +235,10 @@ class Pronostique_Public
                         )
         );
 
-        return $this->displayUserHistoryPagination($months_with_nb_pari,$params['user_id'],$params['currentmonth']);
-    }
-
-    public static function sc_displayListParisTipsterParMois($atts = [], $content = null, $tag = '')
-    {
-        trigger_error('Deprecated shortcode used : '.$tag, E_USER_NOTICE);
-        $atts = array_change_key_case((array) $atts, CASE_LOWER);
-        $params = shortcode_atts([
-                     'user_id' => '',
-                     'month' => '',
-                 ], $atts, $tag);
-
-        if (empty($date) || preg_match('/^[0-9]*-[0-9]*$/', $date) != 1) {
-            $date = strftime('%Y-%m');
-        }
-
-        global $wpdb, $table_tips;
-        $listeParis = $this->getPronostics($params['user_id'], 'all', '', '', "date LIKE '$date%'", 0, 50);
-
-        // liens date
-        $liens_date_tab = array();
-        // SELECT DISTINCT DATE_FORMAT(date,'%m/%Y') AS month FROM `wp_pods_prono` WHERE 1 ORDER BY date DESC
-        $date_fin = $wpdb->get_var("SELECT MAX(DATE_FORMAT(t.tips_date,'%Y-%m-%d')) FROM $table_tips t WHERE t.user_id = ".(int) $params['user_id']);
-        $today = date_create($date_fin);
-        $date_debut = $wpdb->get_var("SELECT MIN(DATE_FORMAT(t.tips_date,'%Y-%m')) FROM $table_tips t WHERE t.user_id = ".(int) $params['user_id']);
-        for ($i = 1; $i < 10; ++$i) {
-            if (date_format($today, 'Y-m') < $date_debut) {
-                break;
-            }
-            $style = date_format($today, 'Y-m') == $date ? 'text-decoration:none;color:black;font-weight:bold;' : '';
-            $liens_date_tab[] = sprintf('<a style="%s" href="/tipser-stats/?id=%d&mois=%s">%s</a>', $style, $params['user_id'], urlencode(date_format($today, 'Y-m')), $i);
-            date_sub($today, DateInterval::createFromDateString('1 month'));
-        }
-
-        $liens_date = implode(' | ', $liens_date_tab);
-        $dateToday = strftime('%Y-%m');
-
-        $sExp = StatsDAO::getStatsUser($params['user_id'], $dateToday, $table_tips);
-        $sExpM = StatsDAO::getMonthSummaryInternal($params['user_id'], $date, $table_tips);
-        $graphdata = StatsDAO::getNLastProfitsInternal($params['user_id'], 50, $table_tips);
-        $statsTipser = getStatsExpertsDetails($sExp, $graphdata);
-
-        return $this->displayUserBilan();
+        return $this->templater->display('user-history-pagination',
+                            array( 'months_with_nb_pari' => $months_with_nb_pari,
+                                   'user_id' => $params['user_id'],
+                                   'currentmonth' => $currentmonth ));
     }
 
     public function sc_displayMenuPronostic($atts = [], $content = null, $tag = '')
@@ -314,12 +268,10 @@ class Pronostique_Public
             }
         }
 
-        ob_start();
-        include_once 'partials/menu-pronostique.php';
-        $result = ob_get_contents();
-        ob_end_clean();
 
-        return $result;
+
+        return $this->templater->display('menu-pronostique',
+                        array('links' => $links));
     }
 
     public function sc_displayListExperts($atts = [], $content = null, $tag = '')
@@ -405,7 +357,6 @@ class Pronostique_Public
 
     public function sc_displayPoolBox($atts = [], $content = null, $tag = '')
     {
-        //$all_tips = PronosticsDAO::getPronosticsExpertsDAO();
         $pronos = pods('pronostique')->find(
                     array(
                         'where' => 'is_expert = 1',
@@ -413,7 +364,7 @@ class Pronostique_Public
                         'orderby' => 'date Desc',
                     ));
 
-        return $this->displayPoolBox($pronos);
+        return $this->templater->display('poolbox', array('pronos' => $pronos));
     }
 
     public function sc_displayStatsExperts($atts = [], $content = null, $tag = '')
@@ -428,7 +379,7 @@ class Pronostique_Public
                             'where' => 'is_expert = 1',
                         ));
 
-        return $this->displayGlobalStats($stats);
+        return $this->templater->display('global-stats', array('stats' => $stats));
     }
 
     public function sc_displayListParis($atts = [], $content = null, $tag = '')
@@ -457,7 +408,14 @@ class Pronostique_Public
         $show_user = ($params['user_id'] == -1);
 
 
-        return $this->displayPronostics($tips, $show_sport,  $show_user, $params['display'], $params['direction']);
+        $template = $params['display'].'-pronostics';
+
+
+        return $this->templater->display($template,array('all_tips' => $tips,
+              'show_sport' => $show_sport,
+              'show_user' => $show_user,
+              'direction' => $params['direction']
+          ));
     }
 
     public function sc_displayUserStatsSide($atts = [], $content = null, $tag = '') {
@@ -496,7 +454,12 @@ class Pronostique_Public
 
         $entete = '<tr><th>&nbsp;</th> <th>Pseudo</th> <th>Profit</th></tr>';
 
-        return $this->displayClassement($titre, $pronos, $entete);
+        $tpl_params = array('titre' => $titre,
+                            'entetes' => $entetes,
+                                'row' => $pronos,
+                            );
+
+        return $this->templater->display('classements', $tpl_params);
     }
 
     public function getPronostics($user_id = 0, $sport = '', $exclude_sport = '', $month = '', $cond_param = 'resultat = 0', $offset = 0, $limit = 20, $sort_order = 'ASC')
@@ -538,97 +501,7 @@ class Pronostique_Public
     //######################
     //     DISPLAY
     //######################
-    public function displayPronostics($all_tips, $show_sport, $show_user, $display, $direction)
-    {
-        ob_start();
-        include 'partials/'.$display.'-pronostics.php';
-        $result = ob_get_contents();
-        ob_end_clean();
 
-        return $result;
-    }
 
-    public function displayPoolBox($pronos)
-    {
-        ob_start();
-        include 'partials/poolbox.php';
-        $result = ob_get_contents();
-        ob_end_clean();
 
-        return $result;
-    }
-
-    public function displayGlobalStats($stats)
-    {
-        ob_start();
-        include 'partials/global-stats.php';
-        $result = ob_get_contents();
-        ob_end_clean();
-
-        return $result;
-    }
-
-    public function displayUserBilan()
-    {
-        setlocale(LC_TIME, 'fr_FR');
-        $timestamp = strtotime($date);
-
-        ob_start();
-        include 'partials/user-bilan.php';
-        $result = ob_get_contents();
-        ob_end_clean();
-
-        return $result;
-    }
-
-    // retourne un classement (quelconque) formaté
-    private function displayClassement($titre, $row, $entetes = '')
-    {
-        return $this->display('classements',
-                        array('titre' => $titre,
-                              'entetes' => $entetes,
-                                'row' => $row,
-                            ));
-    }
-
-    private function displayHistoryGraph($graphdata) {
-        $emptylabels = implode(',',array_fill(0,count($graphdata),"''"));
-        $graphdata = implode(',', $graphdata);
-        ob_start();
-        include 'partials/history-graph.php';
-        $result = ob_get_contents();
-        ob_end_clean();
-
-        return $result;
-    }
-
-    private function displayUserHistoryPagination($months_with_nb_pari,$user_id,$currentmonth) {
-        ob_start();
-        include 'partials/user-history-pagination.php';
-        $result = ob_get_contents();
-        ob_end_clean();
-
-        return $result;
-    }
-
-    private function displayUserPerfSummary($stats, $month_profit, $yield) {
-        ob_start();
-        include 'partials/user-perf-summary.php';
-        $result = ob_get_contents();
-        ob_end_clean();
-
-        return $result;
-    }
-
-    private function display($template, $params)
-    {
-        extract($params);
-
-        ob_start();
-        include 'partials/'.$template.'.php';
-        $result = ob_get_contents();
-        ob_end_clean();
-
-        return $result;
-    }
 }

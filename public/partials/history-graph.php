@@ -29,7 +29,7 @@ animation : false
 };
 
 var data = {
-labels : [<?=$emptylabels?>],
+labels : [<?=$labels?>],
 datasets : [
     {
         strokeColor : "rgba(95, 140, 163, 1)",
