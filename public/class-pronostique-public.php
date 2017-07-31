@@ -10,9 +10,6 @@
 /**
  * The public-facing functionality of the plugin.
  *
- * Defines the plugin name, version, and two examples hooks for how to
- * enqueue the admin-specific stylesheet and JavaScript.
- *
  * @author     Xavier Guichet <contact@xavier-guichet.fr>
  */
 class Pronostique_Public
@@ -363,7 +360,7 @@ class Pronostique_Public
     {
         $pronos = pods('pronostique')->find(
                     array(
-                        'where' => 'is_expert = 1',
+                        'where' => 'is_expert = 1 AND is_vip = 0',
                         'limit' => '10',
                         'orderby' => 'date Desc',
                     ));
@@ -376,7 +373,7 @@ class Pronostique_Public
         //$statsglob = StatsDAO::getGlobalStats();
         $mises_sql = ' ROUND(SUM( IF(resultat IN (1,2,3), mise, 0) ), 2) as mises';
         $gain_sql = ' ROUND(SUM( IF(resultat = 1, (cote-1)*mise, IF(resultat = 2, - mise, IF(resultat = 3, 0, 0))) ), 2) as gain';
-        $VPNA_sql = "SUM(IF(resultat = 1,1,0)) AS 'V', SUM(IF(resultat = 3,1,0)) AS 'N', SUM(IF(resultat = 2,1,0)) AS 'P', SUM(IF(resultat = 0,1,0)) AS 'A'";
+        $VPNA_sql = " SUM(IF(resultat = 1,1,0)) AS 'V', SUM(IF(resultat = 3,1,0)) AS 'N', SUM(IF(resultat = 2,1,0)) AS 'P', SUM(IF(resultat = 0,1,0)) AS 'A'";
         $stats = pods('pronostique')->find(
                         array(
                             'select' => $mises_sql.','.$gain_sql.','.$VPNA_sql,
@@ -390,28 +387,37 @@ class Pronostique_Public
     {
         $atts = array_change_key_case((array) $atts, CASE_LOWER);
         $params = shortcode_atts([
-                                    'user_id' => 0,
-                                    'expertonly' => false,
-                                    'sport' => 'all',
+                                    'user_id' => null,
+                                    'sport' => null,
                                     'excludesport' => null,
-                                    'sportname' => '',
+                                    'month' => null,
+                                    'viponly' => 0,
+                                    'hidetips' => null,
+                                    'hideexpert' => null,
+                                    'hidevip' => null,
+                                    'with_result' => null,
                                     'offset' => 0,
                                     'limit' => 20,
                                     'display' => 'list',
                                     'direction' => 'column',
-                                    'month' => '',
-                                    'viponly' => 0,
-                                    'showvip' => 1
                                      ], $atts, $tag);
 
-        $tips = $this->getPronostics($params['user_id'], $params['sport'], $params['excludesport'], $params['month'], $params['viponly'], $params['showvip'] , '', $params['offset'], $params['limit'], 'DESC');
+        $tips = $this->getPronostics($params['user_id'],
+                                     $params['sport'],
+                                     $params['excludesport'],
+                                     $params['month'],
+                                     $params['hidetips'],
+                                     $params['hideexpert'],
+                                     $params['hidevip'],
+                                     $params['viponly'],
+                                     $params['with_result'],
+                                     $params['offset'],
+                                     $params['limit'],
+                                     'DESC');
 
-        $show_sport = true;
-        if ($params['sport'] != '' && $params['sport'] != 'all') {
-            $show_sport = false;
-        }
+        $show_sport = ($params['sport'] === null);
 
-        $show_user = ($params['user_id'] == -1);
+        $show_user = ($params['user_id'] === null);
 
         $isUserAdherent = UsersDAO::isUserInGroup(get_current_user_id(), UsersDAO::GROUP_ADHERENTS);
 
@@ -467,36 +473,42 @@ class Pronostique_Public
         return $this->templater->display('classements', $tpl_params);
     }
 
-    public function getPronostics($user_id = 0, $sport = '', $exclude_sport = '', $month = '', $viponly = 0, $showvip = 1, $cond_param = 'resultat = 0', $offset = 0, $limit = 20, $sort_order = 'ASC')
+    public function getPronostics($user_id = null, $sport = null, $exclude_sport = null, $month = null, $hidetips = null, $hideexpert = null, $hidevip = null, $viponly = null, $with_result = null, $offset = 0, $limit = null, $sort_order = 'ASC')
     {
         global $wpdb;
 
         $params = array(
-            'limit' => $limit,
             'offset' => $offset,
             'orderby' => 'date '.$sort_order,
             'where' => '1 ',
         );
 
-        // TODO : may not be usefull & should be sanatize
-        if (!empty($cond_param)) {
-            $params['where'] .= ' AND '.$cond_param;
-        }
-
-        if ($user_id == 0) {
+        if ($user_id === "0") {
             $params['where'] .= ' AND author.id = '.get_current_user_id();
-        } elseif (is_numeric($user_id) && $user_id > 0) {
+        } elseif (is_numeric($user_id)) {
             $params['where'] .= ' AND author.id = '.$user_id;
         }
 
-        if ($sport != '' && $sport != 'all') {
+        if ($sport != null) {
             $params['where'] .= " AND sport.name = '".$sport."'";
         }
-        if ($exclude_sport != '') {
+        if ($exclude_sport != null) {
             $params['where'] .= " AND sport.name != '".$exclude_sport."'";
         }
-        if ($month != '') {
+        if ($month != null) {
             $params['where'] .= " AND date LIKE '%".$month."%'";
+        }
+
+        if ($hidetips !== null) {
+            $params['where'] .= " AND is_expert = 1";
+        }
+
+        if ($hideexpert !== null) {
+            $params['where'] .= " AND is_expert = 0";
+        }
+
+        if ($hidevip) {
+            $params['where'] .= " AND is_vip = 0";
         }
 
         if ((int) $viponly) {
@@ -504,9 +516,18 @@ class Pronostique_Public
             $showvip = 1;
         }
 
-        if (! (int) $showvip) {
-            $params['where'] .= " AND is_vip = 0";
+        if ($with_result !== null) {
+            if ($with_result == 1) {
+                $params['where'] .= " AND resultat = 1";
+            } else {
+                $params['where'] .= " AND resultat IS NULL";
+            }
         }
+
+        if ($limit !== null) {
+            $params['limit'] = $limit;
+        }
+
         $all_tips = pods('pronostique')->find($params);
 
         return $all_tips;
