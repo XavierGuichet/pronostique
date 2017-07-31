@@ -17,3 +17,13 @@
 	padding-right: 1em;
 	box-sizing: border-box;
 }
+
+.mise.green {
+    background-color: green;
+}
+.mise.orange {
+    background-color: orange;
+}
+.mise.red {
+    background-color: red;
+}

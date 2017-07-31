@@ -13,8 +13,11 @@
 while ( $all_tips->fetch() ) {
     $all_tipser_str = $show_user ? "<td><a href=\"/tipser-stats/?id=".$all_tips->field('author.ID')."\">".$all_tips->field('author.user_nicename')."</a></td>" : '';
     $val_sport = $show_sport ? '<td class="sport2">'.$all_tips->display('sport').'</td>' : '';
-    $comments_count = get_comment_count($all_tips->field('post.ID'));
-    $nb_comments = $comments_count ? $comments_count['approved'] : '';
+    $nb_comments = 0;
+    if($all_tips->field('post.ID') != 0) {
+        $comments_count = get_comment_count($all_tips->field('post.ID'));
+        $nb_comments = $comments_count ? $comments_count['approved'] : '';
+    }
     $code_poolbox = !empty($all_tips->field('code_poolbox')) ? $all_tips->field('code_poolbox') : $all_tips->field('pari');
 
     $isTipsVisible = ($isUserAdherent || $all_tips->field('resultat') || !$all_tips->field('is_vip'));
@@ -22,7 +25,7 @@ while ( $all_tips->fetch() ) {
     if($isTipsVisible) {
 ?>
     <tr>
-        <td class="date2"><?=date("j/m",strtotime($all_tips->field('date')))?></td>
+        <td class="date2"><?=date_i18n("j/m", strtotime($all_tips->field('date')))?></td>
         <td class="resultat2"><?=Formatter::resultat2str($all_tips->field('resultat'))?></td>
         <td class="match2">
             <strong>
@@ -32,13 +35,15 @@ while ( $all_tips->fetch() ) {
         </td>
         <td><?=substr($code_poolbox,0,6)?></td>
         <?=$val_sport?>
-        <td class="mise2"><?=Formatter::mise2str($all_tips->field('mise'))?></td>
+        <td class="mise2">
+            <div class="mise <?=Formatter::getMiseColorClass($all_tips->field('mise'))?>"><?=$all_tips->field('mise')?></div>
+        </td>
         <?=$all_tipser_str?>
         <td class="couleurcote"><?=$all_tips->display('cote')?></td>
     </tr>
 <?php } else { ?>
     <tr>
-        <td class="date2"><?=date("j/m",strtotime($all_tips->field('date')))?></td>
+        <td class="date2"><?=date_i18n("j/m", strtotime($all_tips->field('date')))?></td>
         <td class="resultat2"><?=Formatter::resultat2str($all_tips->field('resultat'))?></td>
         <td class="match2">
             <strong>
@@ -47,7 +52,9 @@ while ( $all_tips->fetch() ) {
         </td>
         <td class=""><i class="fa fa-lock" aria-hidden="true"></i></td>
         <?=$val_sport?>
-        <td class="mise2"><?=Formatter::mise2str($all_tips->field('mise'))?></td>
+        <td class="mise2">
+            <div class="mise <?=Formatter::getMiseColorClass($all_tips->field('mise'))?>"><?=$all_tips->field('mise')?></div>
+        </td>
         <?=$all_tipser_str?>
         <td class="couleurcote"><i class="fa fa-lock" aria-hidden="true"></i></td>
     </tr>
