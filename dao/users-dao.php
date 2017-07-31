@@ -5,6 +5,7 @@ class UsersDAO
     const GROUP_RETIRED_EXPERTS = 'ExpertsSupprimes';
     const GROUP_EXPERTS = 'Experts';
     const GROUP_TIPSERS = 'Tipsers';
+    const GROUP_ADHERENTS = 'Adhérent';
 
     public static function getUserGroups($uid)
     {

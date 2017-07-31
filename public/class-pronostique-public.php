@@ -159,11 +159,11 @@ class Pronostique_Public
                      'user_id' => '',
                  ], $atts, $tag);
 
-        $tips = $this->getPronostics($params['user_id'], 'all', '', '', '', 0, 50);
+        $tips = $this->getPronostics($params['user_id'], 'all', '','', '',  false, '', 0, 50);
 
         $graph_data = array();
         $previous_profit = 0;
-        // TODO : this is false
+        // TODO : this is false, sum are made in bad order
         while($tips->fetch()) {
             $profit = 0;
             if ($tips->field('resultat') == 1) {
@@ -395,10 +395,12 @@ class Pronostique_Public
                                     'limit' => 20,
                                     'display' => 'list',
                                     'direction' => 'column',
-                                    'month' => ''
+                                    'month' => '',
+                                    'viponly' => false,
+                                    'showvip' => false
                                      ], $atts, $tag);
 
-        $tips = $this->getPronostics($params['user_id'], $params['sport'], $params['excludesport'], $params['month'], '', $params['offset'], $params['limit'], 'DESC');
+        $tips = $this->getPronostics($params['user_id'], $params['sport'], $params['excludesport'], $params['month'], $params['viponly'], $params['showvip'] , '', $params['offset'], $params['limit'], 'DESC');
 
         $show_sport = true;
         if ($params['sport'] != '' && $params['sport'] != 'all') {
@@ -407,6 +409,7 @@ class Pronostique_Public
 
         $show_user = ($params['user_id'] == -1);
 
+        $isUserAdherent = UsersDAO::isUserInGroup(get_current_user_id(), UsersDAO::GROUP_ADHERENTS);
 
         $template = $params['display'].'-pronostics';
 
@@ -414,6 +417,7 @@ class Pronostique_Public
         return $this->templater->display($template,array('all_tips' => $tips,
               'show_sport' => $show_sport,
               'show_user' => $show_user,
+              'isUserAdherent' => $isUserAdherent,
               'direction' => $params['direction']
           ));
     }
@@ -462,7 +466,7 @@ class Pronostique_Public
         return $this->templater->display('classements', $tpl_params);
     }
 
-    public function getPronostics($user_id = 0, $sport = '', $exclude_sport = '', $month = '', $cond_param = 'resultat = 0', $offset = 0, $limit = 20, $sort_order = 'ASC')
+    public function getPronostics($user_id = 0, $sport = '', $exclude_sport = '', $month = '', $viponly = false, $showvip = true, $cond_param = 'resultat = 0', $offset = 0, $limit = 20, $sort_order = 'ASC')
     {
         global $wpdb;
 
@@ -493,15 +497,17 @@ class Pronostique_Public
         if ($month != '') {
             $params['where'] .= " AND date LIKE '%".$month."%'";
         }
+
+        if ($viponly) {
+            $params['where'] .= " AND is_vip = 1";
+            $showvip = true;
+        }
+
+        if (!$showvip) {
+            $params['where'] .= " AND is_vip = 0";
+        }
         $all_tips = pods('pronostique')->find($params);
 
         return $all_tips;
     }
-
-    //######################
-    //     DISPLAY
-    //######################
-
-
-
 }

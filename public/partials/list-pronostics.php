@@ -14,9 +14,13 @@ while ( $all_tips->fetch() ) {
     $val_sport = $show_sport ? '<td class="sport2">'.$all_tips->display('sport').'</td>' : '';
     $comments_count = get_comment_count($all_tips->field('post.ID'));
     $nb_comments = $comments_count ? $comments_count['approved'] : '';
+
+    $isTipsVisible = ($isUserAdherent || !$all_tips->field('is_vip'));
+
+    if($isTipsVisible) {
 ?>
     <tr>
-        <td class="date2"><?=date("j/m/y",strtotime($all_tips->field('date')))?> <?=$all_tips->dispay('permalink')?></td>
+        <td class="date2"><?=date("j/m",strtotime($all_tips->field('date')))?></td>
         <td class="resultat2"><?=Formatter::resultat2str($all_tips->field('resultat'))?></td>
         <td class="match2">
             <strong>
@@ -29,5 +33,20 @@ while ( $all_tips->fetch() ) {
         <?=$all_tipser_str?>
         <td class="couleurcote"><?=$all_tips->display('cote')?></td>
     </tr>
-<?php } ?>
+<?php } else { ?>
+    <tr>
+        <td class="date2"><?=date("j/m",strtotime($all_tips->field('date')))?></td>
+        <td class="resultat2"><?=Formatter::resultat2str($all_tips->field('resultat'))?></td>
+        <td class="match2">
+            <strong>
+                <a class="simplelink" href="">Rejoignez les VIPS pour accéder à ce pronostique</a>
+            </strong>
+        </td>
+        <?=$val_sport?>
+        <td class="mise2"><?=Formatter::mise2str($all_tips->field('mise'))?></td>
+        <?=$all_tipser_str?>
+        <td class="couleurcote"><i class="fa fa-lock" aria-hidden="true"></i></td>
+    </tr>
+
+<?php } } ?>
 </table>
