@@ -5,6 +5,7 @@ class StatsDAO
     // Get all experts pronostics
     public static function getAllExpertsStats($cond_str = '')
     {
+        trigger_error('getAllPronosticsExpertsWithUser deprecated',E_USER_NOTICE);
         global $wpdb;
 
         $table_tips = $wpdb->prefix.'bmk_tips';
@@ -28,6 +29,7 @@ class StatsDAO
 
     public static function getStatsExperts($uid, $date = '')
     {
+        trigger_error('getAllPronosticsExpertsWithUser deprecated',E_USER_NOTICE);
         global $table_tips_experts;
 
         return self::getStatsUser($uid, $date, $table_tips_experts);
@@ -35,6 +37,7 @@ class StatsDAO
 
     public static function getStatsUser($uid, $date, $table)
     {
+        trigger_error('getAllPronosticsExpertsWithUser deprecated',E_USER_NOTICE);
         global $wpdb, $table_user, $gain_sql, $mises_sql, $VPNA_sql;
         $uid_where = (int) $uid ? "WHERE u.ID=$uid" : '';
         $uid_group = (int) $uid ? 'GROUP BY u.ID' : '';
@@ -59,12 +62,14 @@ class StatsDAO
 
     public static function getMonthSummary($uid, $date = '')
     {
+        trigger_error('getAllPronosticsExpertsWithUser deprecated',E_USER_NOTICE);
         global $table_tips_experts;
 
         return self::getMonthSummaryInternal($uid, $date, $table_tips_experts);
     }
     public static function getMonthSummaryInternal($uid, $date, $table)
     {
+        trigger_error('getAllPronosticsExpertsWithUser deprecated',E_USER_NOTICE);
         global $wpdb, $table_user, $gain_sql, $mises_sql, $VPNA_sql;
 
         $mises_all_sql = 'SUM( t.tips_mise )';
@@ -97,6 +102,7 @@ class StatsDAO
 
     public static function getGlobalStats()
     {
+        trigger_error('getAllPronosticsExpertsWithUser deprecated',E_USER_NOTICE);
         global $wpdb;
         $table_tips = $wpdb->prefix.'bmk_tips';
         $table_user = $wpdb->prefix.'users';
@@ -112,12 +118,14 @@ class StatsDAO
 
     public static function getNLastProfits($uid = '', $max = 45)
     {
+        trigger_error('getAllPronosticsExpertsWithUser deprecated',E_USER_NOTICE);
         global $table_tips_experts;
 
         return self::getNLastProfitsInternal($uid, $max, $table_tips_experts);
     }
     public static function getNLastProfitsInternal($uid, $max, $table)
     {
+        trigger_error('getAllPronosticsExpertsWithUser deprecated',E_USER_NOTICE);
         global $wpdb, $table_user;
         $where = 'WHERE t.tips_resultat > 0'.($uid ? ' AND t.user_id = '.(int) $uid : '');
 
@@ -145,6 +153,7 @@ class StatsDAO
 
     public static function calculateYield($u)
     {
+        trigger_error('getAllPronosticsExpertsWithUser deprecated',E_USER_NOTICE);
         if (!isset($u->mises) || !isset($u->profit)) {
             return;
         }
@@ -155,6 +164,7 @@ class StatsDAO
 
     public static function calculateYield2($mises, $profit)
     {
+        trigger_error('getAllPronosticsExpertsWithUser deprecated',E_USER_NOTICE);
         $obj = new StdClass();
         $obj->mises = $mises;
         $obj->profit = $profit;

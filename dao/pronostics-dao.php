@@ -45,6 +45,7 @@ class PronosticsDAO {
 
   // Get all experts pronostics
   static function getAllPronosticsExpertsWithUser($cond_str, $limit_str, $table) {
+      trigger_error('getAllPronosticsExpertsWithUser deprecated',E_USER_NOTICE);
     global $wpdb, $table_user;
     $sort_order = 'DESC';
     if(!empty($limit_str) && false === stripos($limit_str, 'LIMIT')) $limit_str = "LIMIT $limit_str";
