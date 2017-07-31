@@ -111,6 +111,10 @@ class Pronostique_Public
         }
     }
 
+    public function register_widgets() {
+        register_widget( 'TopTipster_Widget' );
+    }
+
     public function register_shortcodes()
     {
         add_shortcode('menu-pronostics', array($this, 'sc_displayMenuPronostic'));
@@ -118,7 +122,6 @@ class Pronostique_Public
         add_shortcode('liste-experts',   array($this, 'sc_displayListExperts'));
 
         add_shortcode('liste-paris', array($this, 'sc_displayListParis'));
-        // add_shortcode('liste-paris-expert-par-mois', 'getListParisExpertParMois');
 
         add_shortcode('liste-top-tipsers', array($this, 'sc_getListTop'));
         add_shortcode('classement-hotstreak', array($this, 'sc_getHotStreakRanking'));
@@ -132,8 +135,9 @@ class Pronostique_Public
         add_shortcode('user-perf-summary', array($this, 'sc_displayUserPerfSummary'));
         add_shortcode('history-graph', array($this, 'sc_displayHistoryGraph'));
         add_shortcode('user-history-pagination', array($this, 'sc_displayUserHistoryPagination'));
-        // add_shortcode('stats-experts-details', 'getStatsExpertsDetailsHtml');
 
+        // add_shortcode('stats-experts-details', 'getStatsExpertsDetailsHtml');
+        // add_shortcode('liste-paris-expert-par-mois', 'getListParisExpertParMois');
         // add_shortcode('stats-tipsters-side', 'getTipsterStatsSide');
 
         add_shortcode('listParisTipsterParMois', array($this, 'deprecated'));
@@ -396,8 +400,8 @@ class Pronostique_Public
                                     'display' => 'list',
                                     'direction' => 'column',
                                     'month' => '',
-                                    'viponly' => false,
-                                    'showvip' => false
+                                    'viponly' => 0,
+                                    'showvip' => 1
                                      ], $atts, $tag);
 
         $tips = $this->getPronostics($params['user_id'], $params['sport'], $params['excludesport'], $params['month'], $params['viponly'], $params['showvip'] , '', $params['offset'], $params['limit'], 'DESC');
@@ -440,9 +444,6 @@ class Pronostique_Public
     //   + Titre 'bien que je trouve pas ca top'
     public function getListTop($titre = 'Top tipsters du mois', $of_the_month = true, $max = 10)
     {
-        $dateactu = strftime('%Y-%m-');
-        $dateactu = strftime('%Y');
-
         // TODO : fix to real month / year when data set will be ready
         $cond_month = $of_the_month == 'true' ? ' AND actif = 1 AND MONTH(date) = 3 AND YEAR(date) = 2014' : '';
 
@@ -466,7 +467,7 @@ class Pronostique_Public
         return $this->templater->display('classements', $tpl_params);
     }
 
-    public function getPronostics($user_id = 0, $sport = '', $exclude_sport = '', $month = '', $viponly = false, $showvip = true, $cond_param = 'resultat = 0', $offset = 0, $limit = 20, $sort_order = 'ASC')
+    public function getPronostics($user_id = 0, $sport = '', $exclude_sport = '', $month = '', $viponly = 0, $showvip = 1, $cond_param = 'resultat = 0', $offset = 0, $limit = 20, $sort_order = 'ASC')
     {
         global $wpdb;
 
@@ -498,12 +499,12 @@ class Pronostique_Public
             $params['where'] .= " AND date LIKE '%".$month."%'";
         }
 
-        if ($viponly) {
+        if ((int) $viponly) {
             $params['where'] .= " AND is_vip = 1";
-            $showvip = true;
+            $showvip = 1;
         }
 
-        if (!$showvip) {
+        if (! (int) $showvip) {
             $params['where'] .= " AND is_vip = 0";
         }
         $all_tips = pods('pronostique')->find($params);

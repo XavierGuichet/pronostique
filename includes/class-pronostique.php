@@ -118,6 +118,7 @@ class Pronostique {
 		 * side of the site.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-pronostique-public.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/widgets/top-tipsters.php';
 
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'dao/pronostics-dao.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'dao/stats-dao.php';
@@ -175,6 +176,7 @@ class Pronostique {
 		$plugin_public = new Pronostique_Public( $this->get_plugin_name(), $this->get_version() );
 
 		$this->loader->add_action( 'init', $plugin_public, 'register_shortcodes' );
+		$this->loader->add_action( 'widgets_init', $plugin_public, 'register_widgets' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
         $this->loader->add_action( 'save_post', $plugin_public, 'update_comments_meta' );
