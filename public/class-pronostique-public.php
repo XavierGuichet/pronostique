@@ -158,14 +158,16 @@ class Pronostique_Public
         $atts = array_change_key_case((array) $atts, CASE_LOWER);
         $params = shortcode_atts([
                      'user_id' => '',
+                     'hidetips' => null,
+                     'hideexpert' => null
                  ], $atts, $tag);
 
         $tips = $this->getPronostics($params['user_id'],
                                      null, //sport
                                      null, //exclude_sport
                                      null, //month
-                                     null, //hidetips
-                                     null, //hideexpert
+                                     $params['hidetips'], //hidetips
+                                     $params['hideexpert'], //hideexpert
                                      null, //hidevip
                                      null, //viponly
                                      1, //avec resultat
@@ -203,21 +205,31 @@ class Pronostique_Public
     public function sc_displayUserPerfSummary($atts = [], $content = null, $tag = '') {
         $atts = array_change_key_case((array) $atts, CASE_LOWER);
         $params = shortcode_atts([
-                     'user_id' => '',
+                     'user_id' => null,
+                     'hidetips' => null,
+                     'hideexpert' => null
                  ], $atts, $tag);
 
         $gain_sql = " ROUND(SUM( IF(resultat = 1, (cote-1)*mise, IF(resultat = 2, - mise, IF(resultat = 3, 0, 0))) ), 2) as gain";
         $mises_sql = " ROUND(SUM( IF(resultat IN (1,2,3), mise, 0) ), 2) as mises";
         $VPNA_sql = " SUM(IF(resultat = 1,1,0)) AS V, SUM(IF(resultat = 3,1,0)) AS N, SUM(IF(resultat = 2,1,0)) AS P, SUM(IF(resultat = 0,1,0)) AS A";
 
+        $where = "1";
+        if($params['user_id'] !== null and is_numeric($params['user_id'])) {
+            $where .= " AND author.id = ".intval($params['user_id']);
+        }
+        if($params['hidetips'] !== null) {
+            $where .= " AND is_expert = 1";
+        }
+
         $stats = pods('pronostique')->find(array(
                             'select' => "count(*) as 'nb_total_tips',".$gain_sql.",".$mises_sql.",".$VPNA_sql,
-                            'where' => "author.id = ".$params['user_id']
+                            'where' => $where
         ));
 
         $user_month_profit = pods('pronostique')->find(array(
                             'select' => $gain_sql,
-                            'where' => "author.id = ".$params['user_id']." AND MONTH(date) like MONTH(NOW()) AND YEAR(date) like YEAR(NOW())"
+                            'where' => $where." AND MONTH(date) like MONTH(NOW()) AND YEAR(date) like YEAR(NOW())"
         ));
 
         if($user_month_profit->total() == 0 || $user_month_profit->field('gain') === null) {
@@ -316,12 +328,12 @@ class Pronostique_Public
 
         foreach ($experts as $e) {
             $is_expert = UsersDAO::isUserInGroup($e->user_id, UsersDAO::GROUP_EXPERTS);
-            if (!$is_expert && $params['limit'] == 'inactif') {
+            if ($is_expert && $params['limit'] == 'inactif') {
                 continue;
             }
 
             $is_retired = UsersDAO::isUserInGroup($e->user_id, UsersDAO::GROUP_RETIRED_EXPERTS);
-            if (!$is_retired && $params['limit'] == 'actif') {
+            if ($is_retired && $params['limit'] == 'actif') {
                 continue;
             }
 
@@ -333,18 +345,21 @@ class Pronostique_Public
 
             $profit_class = Formatter::valeur2CSS($e->profit);
 
-            $out .= '<p class="bloc_expert">
-                    <a href="'.$href_expert.'">'.$e->nom_tipser.'</a>
-                    <span class="'.$profit_class.'">'.$profit.' Unités</span> <br />
-                    <span class="subtitle">Yield : '.$yield.'</span>
-                    <hr/>
-                </p>';
-
+            if($is_expert) {
+                $out .= '<p class="bloc_expert">
+                        <a href="'.$href_expert.'">'.$e->nom_tipser.'</a>
+                        <span class="'.$profit_class.'">'.$profit.' Unités</span> <br />
+                        <span class="subtitle">Yield : '.$yield.'</span>
+                        <hr/>
+                    </p>';
+            }
+            if($is_retired) {
                 // FIXME: Ancien contenu pour l'affichage des experts inactifs
-                // $out .= '<p>
-                //             '.$e->nom_tipser.'
-                //             <span class="'.$profit_class.'">'.$profit.' Unités</span>
-                //         </p>';
+                $out .= '<p>
+                        '.$e->nom_tipser.'
+                        <span class="'.$profit_class.'">'.$profit.' Unités</span>
+                    </p>';
+            }
         }
 
         if (!count($experts)) {

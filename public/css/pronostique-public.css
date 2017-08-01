@@ -28,7 +28,11 @@
     background-color: red;
 }
 
-
+/*
+################
+HISTORY
+################
+*/
 .history-pagination {
     clear:both;
     text-align:center;
@@ -62,10 +66,44 @@
     color: #27313D;
     padding: 4px 6px;
 }
-
 .history-list-pari h4 {
     font-size: 20px;
     text-align: center;
     padding-bottom: 0;
     margin-bottom: 0.25em;
+}
+/*
+################
+BILAN EXPERT
+################
+*/
+.bilan_expert_top {
+
+}
+.bilan_expert_text {
+    width: calc(100% - 720px);
+    float: left;
+    padding-top: 50px;
+    padding-right: 20px;
+    box-sizing: border-box;
+}
+.bilan_expert_stats {
+    width: 720px;
+    float: left;
+    box-sizing: border-box;
+}
+.bilan_expert_main {
+    float: left;
+    width: 75%;
+}
+.bilan_expert_sidebar {
+    float: right;
+    width: 23%;
+}
+
+.stats_expert_container {
+    display: flex;
+}
+.stats_expert_container .stat_expert {
+    flex: 1 1 auto;
 }

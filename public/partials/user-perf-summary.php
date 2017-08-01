@@ -1,4 +1,4 @@
-<div>
+<div class="stats_expert_container">
 <div class="stat_expert">
     <span class="stat_title">Profit total</span><br/>
     <span class="stat_value <?=Formatter::valeur2CSS($stats->field('gain'))?>"><?=$stats->field('gain')?></span>

@@ -29,7 +29,7 @@ while ( $all_tips->fetch() ) {
         <td class="resultat2"><?=Formatter::resultat2str($all_tips->field('resultat'))?></td>
         <td class="match2">
             <strong>
-                <a class="simplelink" href="/pronostique/<?=$all_tips->field('permalink')?>"><?=$all_tips->display('name')?></a>
+                <a class="simplelink" href="/pronostique/<?=$all_tips->field('permalink')?>"><?=stripslashes($all_tips->display('name'))?></a>
                 <span class="tips-comm-number"><?=$nb_comments?></span>
             </strong>
         </td>
