@@ -251,7 +251,7 @@ class Pronostique_Public
         );
 
         $month_list = array();
-        $index_current_month = 0;
+        $index_current_month = -1;
         $i = 0;
         while ($months_with_nb_pari->fetch()) {
             $month_list[] = $months_with_nb_pari->row();
