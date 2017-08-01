@@ -1,3 +1,6 @@
+<?php
+if ($all_tips->total() > 0) {
+?>
 <table class="tableau_pronostics">
     <tr>
         <th class="date2">Date</th>
@@ -61,3 +64,8 @@ while ( $all_tips->fetch() ) {
 
 <?php } } ?>
 </table>
+<?php
+} else {
+    echo '<p class="no_result">Aucun pronostique dans cette catégorie actuellement</p>';
+}
+?>
