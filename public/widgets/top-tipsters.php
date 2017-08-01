@@ -41,7 +41,7 @@ class TopTipster_Widget extends WP_Widget {
 		if ( ! empty( $instance['limit_count'] ) ) {
 			$max = intval($instance['limit_count']);
 		}
-
+        // TODO : change to MONTH(NOW) and YEAR(NOW)
         $cond_month = $limit_to_month == 'true' ? ' AND actif = 1 AND MONTH(date) = 3 AND YEAR(date) = 2014' : '';
 
         $pronos = pods('pronostique')->find(

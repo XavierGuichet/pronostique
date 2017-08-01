@@ -134,7 +134,6 @@ class Pronostique_Public
         add_shortcode('user-history-pagination', array($this, 'sc_displayUserHistoryPagination'));
 
         // add_shortcode('stats-experts-details', 'getStatsExpertsDetailsHtml');
-        // add_shortcode('liste-paris-expert-par-mois', 'getListParisExpertParMois');
         // add_shortcode('stats-tipsters-side', 'getTipsterStatsSide');
 
         add_shortcode('listParisTipsterParMois', array($this, 'deprecated'));
