@@ -1,5 +1,5 @@
 <div>
-<script src="/wp-content/plugins/pronostique/Chart.min.js"></script>
+<script src="/wp-content/plugins/pronostiques/Chart.min.js"></script>
 <h5 class="graphtitle">Evolution du profit sur les 50 derniers paris</h5>
 <canvas id="buyers" width="720" height="180"></canvas>
 
