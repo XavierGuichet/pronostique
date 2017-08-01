@@ -217,7 +217,7 @@ class Pronostique_Public
 
         $user_month_profit = pods('pronostique')->find(array(
                             'select' => $gain_sql,
-                            'where' => "author.id = ".$params['user_id']." AND MONTH(date) like MONTH(NOW())"
+                            'where' => "author.id = ".$params['user_id']." AND MONTH(date) like MONTH(NOW()) AND YEAR(date) like YEAR(NOW())"
         ));
 
         if($user_month_profit->total() == 0 || $user_month_profit->field('gain') === null) {
