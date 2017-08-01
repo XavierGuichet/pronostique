@@ -160,23 +160,37 @@ class Pronostique_Public
                      'user_id' => '',
                  ], $atts, $tag);
 
-        $tips = $this->getPronostics($params['user_id'], 'all', '','', '',  false, '', 0, 50);
+        $tips = $this->getPronostics($params['user_id'],
+                                     null, //sport
+                                     null, //exclude_sport
+                                     null, //month
+                                     null, //hidetips
+                                     null, //hideexpert
+                                     null, //hidevip
+                                     null, //viponly
+                                     1, //avec resultat
+                                     0, //offset
+                                     50, //limit
+                                     'DESC');
 
         $graph_data = array();
-        $previous_profit = 0;
-        // TODO : this is false, sum are made in bad order
+        $cumulated_profit = 0;
+        $inv_data = array();
         while($tips->fetch()) {
-            $profit = 0;
-            if ($tips->field('resultat') == 1) {
-                $profit = ($tips->field('mise') * ($tips->field('cote') - 1));
-            } elseif ($tips->field('resultat') == 2) {
-                $profit = -$tips->field('mise');
-            }
-            $graph_data[] = $previous_profit + $profit;
-            $previous_profit += $profit;
-            // $graph_tips_array[] = $graph_tips;
+            $inv_data[] = $tips->row();
         }
-        $graph_data = array_reverse($graph_data);
+        $data = array_reverse($inv_data);
+        for($i = 0; $i < count($data); $i++) {
+            $tip = $data[$i];
+            $profit = 0;
+            if (intval($tip['resultat']) == 1) {
+                $profit = $tip['mise'] * ($tip['cote'] - 1);
+            } elseif (intval($tip['resultat']) == 2) {
+                $profit = -$tip['mise'];
+            }
+            $cumulated_profit = floatval($cumulated_profit) + floatval($profit);
+            $graph_data[] = $cumulated_profit;
+        }
 
         $emptylabels = implode(',',array_fill(0,count($graph_data),"''"));
         $graphdata = implode(',', $graph_data);
@@ -517,8 +531,8 @@ class Pronostique_Public
         }
 
         if ($with_result !== null) {
-            if ($with_result == 1) {
-                $params['where'] .= " AND resultat = 1";
+            if (intval($with_result) === 1) {
+                $params['where'] .= " AND resultat IS NOT NULL AND resultat != 0";
             } else {
                 $params['where'] .= " AND resultat IS NULL";
             }
