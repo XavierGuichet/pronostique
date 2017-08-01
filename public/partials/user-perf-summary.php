@@ -1,3 +1,4 @@
+<div>
 <div class="stat_expert">
     <span class="stat_title">Profit total</span><br/>
     <span class="stat_value <?=Formatter::valeur2CSS($stats->field('gain'))?>"><?=$stats->field('gain')?></span>
@@ -25,4 +26,5 @@
 <div class="stat_expert">
     <span class="stat_title">Yield total</span><br/>
     <span class="stat_value <?=Formatter::valeur2CSS($yield)?>"><?=$yield?></span>
+</div>
 </div>
