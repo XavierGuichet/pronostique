@@ -27,3 +27,45 @@
 .mise.red {
     background-color: red;
 }
+
+
+.history-pagination {
+    clear:both;
+    text-align:center;
+    margin-bottom: 1.5em;
+}
+.history-pagination__list {
+    display: flex;
+    flex-wrap: wrap;
+    direction: row;
+    justify-content: space-around;
+    font-size: 18px;
+}
+.history-pagination__list li a {
+    display: inline-block;
+    white-space: nowrap;
+    padding: 4px 6px;
+    color: #668da3;
+    border: 1px solid transparent;
+}
+.history-pagination__list li a:hover {
+    border: 1px solid #668da3;
+}
+.history-pagination__list li span {
+    display: inline-block;
+    white-space: nowrap;
+    color: #27313D;
+    border: 1px solid transparent;
+    padding: 4px 2px;
+}
+.history-pagination__list li span.active {
+    color: #27313D;
+    padding: 4px 6px;
+}
+
+.history-list-pari h4 {
+    font-size: 20px;
+    text-align: center;
+    padding-bottom: 0;
+    margin-bottom: 0.25em;
+}

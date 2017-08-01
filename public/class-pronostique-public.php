@@ -250,10 +250,22 @@ class Pronostique_Public
                         )
         );
 
+        $month_list = array();
+        $index_current_month = 0;
+        $i = 0;
+        while ($months_with_nb_pari->fetch()) {
+            $month_list[] = $months_with_nb_pari->row();
+            if($params['currentmonth'] == $months_with_nb_pari->field('month')) {
+                $index_current_month = $i;
+            }
+            $i++;
+        }
+
         return $this->templater->display('user-history-pagination',
-                            array( 'months_with_nb_pari' => $months_with_nb_pari,
+                            array( 'months_list' => $month_list,
                                    'user_id' => $params['user_id'],
-                                   'currentmonth' => $currentmonth ));
+                                   'currentmonth' => $params['currentmonth'],
+                                   'index_current_month' => $index_current_month ));
     }
 
     public function sc_displayMenuPronostic($atts = [], $content = null, $tag = '')
