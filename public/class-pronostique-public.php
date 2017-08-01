@@ -491,7 +491,7 @@ class Pronostique_Public
     public function getListTop($titre = 'Top tipsters du mois', $of_the_month = true, $max = 10)
     {
         // TODO : fix to real month / year when data set will be ready
-        $cond_month = $of_the_month == 'true' ? ' AND actif = 1 AND MONTH(date) = 3 AND YEAR(date) = 2014' : '';
+        $cond_month = $of_the_month == 'true' ? ' AND actif = 1 AND MONTH(date) = MONTH(NOW()) AND YEAR(date) = YEAR(NOW())' : '';
 
         $pronos = pods('pronostique')->find(
             array(
