@@ -153,7 +153,6 @@ class Pronostique_Public
     //     SHORTCODE
     //######################
     public static function sc_displayHistoryGraph($atts = [], $content = null, $tag = '') {
-        // TODO: WArning, le graph est 'inversé'
         $atts = array_change_key_case((array) $atts, CASE_LOWER);
         $params = shortcode_atts([
                      'user_id' => '',
@@ -382,18 +381,62 @@ class Pronostique_Public
 
     public function sc_getHotStreakRanking($atts = [], $content = null, $tag = '')
     {
-        trigger_error('WIP : '.$tag, E_USER_NOTICE);
-        // TODO: This could be done with a subquery system to have the 20 limit
-        $users_hotstreak = pods('pronostique')->find(
+        $tips = pods('pronostique')->find(
                                 array(
-                                    'select' => "0 AS V, 0 AS P, 0 AS N, resultat, author.ID, author.user_nicename",
+                                    'select' => "t.ID, resultat, author.ID as user_id, author.user_nicename as username",
                                     'limit' => 0,
-                                    'where' => 'resultat > 0',
-                                    'orderby' => 'author.ID ASC'
+                                    'where' => 'resultat > 0 AND is_expert != 1',
+                                    'orderby' => 'date DESC'
                                 )
         );
 
-        return 'HotStreak Classement WIP';
+        $res2letter = array(1 => 'V',2 => 'P',3 => 'N');
+        $hotStreaks_by_uid = array();
+
+        // create array with hotstreak of all tipster
+        while($tips->fetch()) {
+          $user_id = $tips->field('user_id');
+          if(!isset($hotStreaks_by_uid[$user_id])) {
+              $hotStreaks_by_uid[$user_id] = array(
+                                    "V" => 0,
+                                    "P" => 0,
+                                    "N" => 0,
+                                    "tips_count" => 0,
+                                    "display_name" => $tips->field('username'),
+                                    "user_id" => $user_id,
+                                    );
+          }
+          if($hotStreaks_by_uid[$user_id]['tips_count'] >= 20) {
+              continue;
+          }
+          $hotStreaks_by_uid[$user_id]['tips_count'] += 1;
+          $letter = $res2letter[$tips->field('resultat')];
+          $hotStreaks_by_uid[$user_id][$letter] += 1;
+        }
+
+        // create an array in which value are hot-streak string
+        $best_id = array();
+        foreach($hotStreaks_by_uid as $uid => $user_hot_streak) {
+          $best_id[$uid] = sprintf('%02d-%02d-%02d', $user_hot_streak['V'], $user_hot_streak['N'], $user_hot_streak['P']);
+        }
+        // order that array and keep first 25
+        arsort($best_id);
+        $best_id = array_slice($best_id,0,25,true);
+
+        // get hotstreak complete information and add them to the outputed array;
+        $best_hotstreak = array();
+        foreach($best_id as $uid => $v2) {
+            $best_hotstreak[] = $hotStreaks_by_uid[$uid];
+        }
+
+        $entete = '<tr><th>&nbsp;</th> <th>Pseudo</th> <th>Série</th></tr>';
+
+        $tpl_params = array('titre' => 'Série en cours',
+                            'entetes' => $entetes,
+                                'row' => $best_hotstreak,
+                            );
+
+        return $this->templater->display('classements-hotstreak', $tpl_params);
     }
 
     public function sc_displayPoolBox($atts = [], $content = null, $tag = '')
@@ -490,8 +533,7 @@ class Pronostique_Public
     //   + Titre 'bien que je trouve pas ca top'
     public function getListTop($titre = 'Top tipsters du mois', $of_the_month = true, $max = 10)
     {
-        // TODO : fix to real month / year when data set will be ready
-        $cond_month = $of_the_month == 'true' ? ' AND actif = 1 AND MONTH(date) = MONTH(NOW()) AND YEAR(date) = YEAR(NOW())' : '';
+        $cond_month = $of_the_month == 'true' ? ' AND actif = 1 AND MONTH(date) = 3 AND YEAR(date) = 2014' : '';
 
         $pronos = pods('pronostique')->find(
             array(
