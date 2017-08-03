@@ -110,6 +110,7 @@ class Pronostique_Public
 
     public function register_widgets() {
         register_widget( 'TopTipster_Widget' );
+        register_widget( 'TopVip_Widget' );
     }
 
     public function register_shortcodes()

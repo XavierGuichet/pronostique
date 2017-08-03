@@ -19,6 +19,6 @@ class Calculator
     static function Yield($mise, $profit) {
         $out = $mise != 0 ? sprintf('%.2f', ($profit / $mise) * 100) : '0.00';
 
-        return "$out%";
+        return $out;
     }
 }

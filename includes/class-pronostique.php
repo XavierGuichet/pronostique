@@ -119,6 +119,7 @@ class Pronostique {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-pronostique-public.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/widgets/top-tipsters.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/widgets/top-vip.php';
 
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'dao/pronostics-dao.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'dao/stats-dao.php';
