@@ -32,7 +32,7 @@ class Pronostique_Public
      */
     private $version;
 
-    private  $templater;
+    private $templater;
 
     private $table_user;
     private $table_tips;
@@ -386,7 +386,7 @@ class Pronostique_Public
                                 array(
                                     'select' => "t.ID, resultat, author.ID as user_id, author.user_nicename as username",
                                     'limit' => 0,
-                                    'where' => 'resultat > 0 AND is_expert != 1',
+                                    'where' => 'resultat > 0 AND is_expert != 1 AND date BETWEEN (CURDATE() - INTERVAL 365 DAY) AND CURDATE()',
                                     'orderby' => 'user_id DESC, date DESC'
                                 )
         );
@@ -485,7 +485,6 @@ class Pronostique_Public
                                     'display' => 'list',
                                     'direction' => 'column',
                                      ], $atts, $tag);
-
         $tips = $this->getPronostics($params['user_id'],
                                      $params['sport'],
                                      $params['excludesport'],
@@ -498,6 +497,10 @@ class Pronostique_Public
                                      $params['offset'],
                                      $params['limit'],
                                      'DESC');
+
+                                     echo "<pre>";
+                                     var_dump($params);
+                                     echo "</pre>";
 
         $show_sport = ($params['sport'] === null);
 
@@ -590,14 +593,14 @@ class Pronostique_Public
             $params['where'] .= " AND is_expert = 0";
         }
 
-        if ($hidevip) {
+        if ($hidevip !== null && $hidevip != "0") {
             $params['where'] .= " AND is_vip = 0";
         }
 
-        if ((int) $viponly) {
+        if ($viponly !== null && $viponly != "0") {
             $params['where'] .= " AND is_vip = 1";
-            $showvip = 1;
         }
+
 
         if ($with_result !== null) {
             if (intval($with_result) === 1) {
@@ -606,6 +609,8 @@ class Pronostique_Public
                 $params['where'] .= " AND resultat IS NULL";
             }
         }
+
+        echo $params['where']."<br/>";
 
         if ($limit !== null) {
             $params['limit'] = $limit;
