@@ -386,7 +386,7 @@ class Pronostique_Public
                                     'select' => "t.ID, resultat, author.ID as user_id, author.user_nicename as username",
                                     'limit' => 0,
                                     'where' => 'resultat > 0 AND is_expert != 1',
-                                    'orderby' => 'date DESC'
+                                    'orderby' => 'user_id DESC, date DESC'
                                 )
         );
 
