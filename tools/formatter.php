@@ -35,14 +35,12 @@ class Formatter {
 
   // Retourne une chaine decrivant le resultat
   static function resultat2str($resultat) {
-    $style = 'color:white;border-radius:2px;padding:2px;';
-    $link  = '<img src="%s" />';
-    $res2str = array(
-      '1' => sprintf($link, self::uploadedLink('won.png')),
-      '2' => sprintf($link, self::uploadedLink('icon-lost.png')),
-      '3' => sprintf($link, self::uploadedLink('push1.gif')),
-    );
-    return array_key_exists($resultat, $res2str) ? $res2str[$resultat] : sprintf($link, self::uploadedLink('icon-reste.png', '2012/11'));
+      $font_awesome_icon_class = array(
+          "1" => "fa-check",
+          "2" => "fa-times",
+          "3" => "fa-exchange"
+      );
+    return array_key_exists($resultat, $font_awesome_icon_class) ? $font_awesome_icon_class[$resultat] : 'fa-circle';
   }
 
   // Retourne une chaine decrivant la mise
