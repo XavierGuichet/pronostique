@@ -1,3 +1,5 @@
+<?=$before_widget?>
+<?=$widget_title?>
 <table class="tableau_pronostics">
     <tr>
         <th colspan="4" style="font-size:14px">
@@ -30,3 +32,4 @@ foreach($row as $user_stat) {
 }
 ?>
 </table>
+<?=$after_widget?>
