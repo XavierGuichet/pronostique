@@ -156,12 +156,7 @@ class Pronostique_Public
     //######################
     public static function sc_displayHistoryGraph($atts = [], $content = null, $tag = '')
     {
-        $atts = array_change_key_case((array) $atts, CASE_LOWER);
-        $params = shortcode_atts([
-                     'user_id' => '',
-                     'hidetips' => null,
-                     'hideexpert' => null,
-                 ], $atts, $tag);
+        $params = $this->prepareParams($atts,$tag);
 
         $tips = $this->getPronostics($params['user_id'],
                                      null, //sport
@@ -205,12 +200,7 @@ class Pronostique_Public
 
     public function sc_displayUserPerfSummary($atts = [], $content = null, $tag = '')
     {
-        $atts = array_change_key_case((array) $atts, CASE_LOWER);
-        $params = shortcode_atts([
-                     'user_id' => null,
-                     'hidetips' => null,
-                     'hideexpert' => null,
-                 ], $atts, $tag);
+        $params = $this->prepareParams($atts, $tag);
 
         $gain_sql = ' ROUND(SUM( IF(tips_result = 1, (cote-1)*mise, IF(tips_result = 2, - mise, IF(tips_result = 3, 0, 0))) ), 2) as gain';
         $mises_sql = ' ROUND(SUM( IF(tips_result IN (1,2,3), mise, 0) ), 2) as mises';
@@ -456,7 +446,6 @@ class Pronostique_Public
 
     public function sc_displayStatsExperts($atts = [], $content = null, $tag = '')
     {
-        //$statsglob = StatsDAO::getGlobalStats();
         $mises_sql = ' ROUND(SUM( IF(tips_result IN (1,2,3), mise, 0) ), 2) as mises';
         $gain_sql = ' ROUND(SUM( IF(tips_result = 1, (cote-1)*mise, IF(tips_result = 2, - mise, IF(tips_result = 3, 0, 0))) ), 2) as gain';
         $VPNA_sql = " SUM(IF(tips_result = 1,1,0)) AS 'V', SUM(IF(tips_result = 3,1,0)) AS 'N', SUM(IF(tips_result = 2,1,0)) AS 'P', SUM(IF(tips_result = 0,1,0)) AS 'A'";
@@ -471,22 +460,8 @@ class Pronostique_Public
 
     public function sc_displayListParis($atts = [], $content = null, $tag = '')
     {
-        $atts = array_change_key_case((array) $atts, CASE_LOWER);
-        $params = shortcode_atts([
-                                    'user_id' => null,
-                                    'sport' => null,
-                                    'excludesport' => null,
-                                    'month' => null,
-                                    'viponly' => 0,
-                                    'hidetips' => null,
-                                    'hideexpert' => null,
-                                    'hidevip' => null,
-                                    'with_result' => null,
-                                    'offset' => 0,
-                                    'limit' => 20,
-                                    'display' => 'list',
-                                    'direction' => 'column',
-                                     ], $atts, $tag);
+        $params = $this->prepareParams($atts, $tag);
+
         $tips = $this->getPronostics($params['user_id'],
                                      $params['sport'],
                                      $params['excludesport'],
@@ -525,22 +500,7 @@ class Pronostique_Public
 
     public function sc_displayGlobalPerf($atts = [], $content = null, $tag = '')
     {
-        $atts = array_change_key_case((array) $atts, CASE_LOWER);
-        $params = shortcode_atts([
-                                    'user_id' => null,
-                                    'sport' => null,
-                                    'excludesport' => null,
-                                    'month' => null,
-                                    'viponly' => 0,
-                                    'hidetips' => null,
-                                    'hideexpert' => null,
-                                    'hidevip' => null,
-                                    'with_result' => null,
-                                    'offset' => 0,
-                                    'limit' => 20,
-                                    'display' => 'list',
-                                    'direction' => 'column',
-                                     ], $atts, $tag);
+        $params = $this->prepareParams($atts, $tag);
 
         $dateactu = strftime('%Y-%m-');
         $gain_sql = ' ROUND(SUM( IF(tips_result = 1, (cote-1)*mise, IF(tips_result = 2, - mise, IF(tips_result = 3, 0, 0))) ), 2) as gain';
@@ -660,5 +620,26 @@ class Pronostique_Public
         $all_tips = pods('pronostique')->find($params);
 
         return $all_tips;
+    }
+
+    private function prepareParams($atts, $tag) {
+        $atts = array_change_key_case((array) $atts, CASE_LOWER);
+        $params = shortcode_atts([
+                            'user_id' => null,
+                            'sport' => null,
+                            'excludesport' => null,
+                            'month' => null,
+                            'viponly' => 0,
+                            'hidetips' => null,
+                            'hideexpert' => null,
+                            'hidevip' => null,
+                            'with_result' => null,
+                            'offset' => 0,
+                            'limit' => 20,
+                            'display' => 'list',
+                            'direction' => 'column',
+                             ], $atts, $tag);
+
+        return $params;
     }
 }
