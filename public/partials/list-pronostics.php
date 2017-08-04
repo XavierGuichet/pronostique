@@ -6,7 +6,7 @@ if ($all_tips->total() > 0) {
         <th class="date2">Date</th>
         <th class="resultat2"></th>
         <th class="match2">Match</th>
-        <th class="">Pari</th>
+        <?=($show_pari ? '<th class="">Pari</th>' : '')?>
         <?=($show_sport ? '<th class="sport2">Sport</th>' : '')?>
         <th class="mise2">Mise</th>
         <?=($show_user ? '<th class="tipster2">Tipster</th>' : '')?>
@@ -37,7 +37,7 @@ while ( $all_tips->fetch() ) {
                 <span class="tips-comm-number"><?=$nb_comments?></span>
             </strong>
         </td>
-        <td><?=substr($code_poolbox,0,6)?></td>
+        <?=($show_pari ? '<td>'.substr($code_poolbox,0,6).'</td>' : '')?>
         <?=$val_sport?>
         <td class="mise2">
             <div class="mise <?=Formatter::getMiseColorClass($all_tips->field('mise'))?>"><?=$all_tips->field('mise')?></div>
@@ -48,13 +48,13 @@ while ( $all_tips->fetch() ) {
 <?php } else { ?>
     <tr>
         <td class="date2"><?=date_i18n("j/m", strtotime($all_tips->field('date')))?></td>
-        <td class="resultat2"><?=Formatter::resultat2str($all_tips->field('resultat'))?></td>
+        <td class="resultat2"><i class="fa <?=Formatter::resultat2str($all_tips->field('resultat'))?>" aria-hidden="true"></i></td>
         <td class="match2">
             <strong>
-                <a class="simplelink" href="">Rejoignez les VIPS pour accéder à ce pronostique</a>
+                <a class="simplelink" href="/vip/">Rejoignez les VIPS pour accéder à ce pronostique</a>
             </strong>
         </td>
-        <td class=""><i class="fa fa-lock" aria-hidden="true"></i></td>
+        <?=($show_pari ? '<td class=""><i class="fa fa-lock" aria-hidden="true"></i></td>' : '')?>
         <?=$val_sport?>
         <td class="mise2">
             <div class="mise <?=Formatter::getMiseColorClass($all_tips->field('mise'))?>"><?=$all_tips->field('mise')?></div>
