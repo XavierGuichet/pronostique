@@ -108,9 +108,10 @@ class Pronostique_Public
         }
     }
 
-    public function register_widgets() {
-        register_widget( 'TopTipster_Widget' );
-        register_widget( 'TopVip_Widget' );
+    public function register_widgets()
+    {
+        register_widget('TopTipster_Widget');
+        register_widget('TopVip_Widget');
     }
 
     public function register_shortcodes()
@@ -129,11 +130,11 @@ class Pronostique_Public
 
         add_shortcode('user-stats-side', array($this, 'sc_displayUserStatsSide'));
 
-
         add_shortcode('user-perf-summary', array($this, 'sc_displayUserPerfSummary'));
         add_shortcode('history-graph', array($this, 'sc_displayHistoryGraph'));
         add_shortcode('user-history-pagination', array($this, 'sc_displayUserHistoryPagination'));
 
+        add_shortcode('global-perf', array($this, 'sc_displayGlobalPerf'));
         // add_shortcode('stats-experts-details', 'getStatsExpertsDetailsHtml');
         // add_shortcode('stats-tipsters-side', 'getTipsterStatsSide');
 
@@ -153,12 +154,13 @@ class Pronostique_Public
     //######################
     //     SHORTCODE
     //######################
-    public static function sc_displayHistoryGraph($atts = [], $content = null, $tag = '') {
+    public static function sc_displayHistoryGraph($atts = [], $content = null, $tag = '')
+    {
         $atts = array_change_key_case((array) $atts, CASE_LOWER);
         $params = shortcode_atts([
                      'user_id' => '',
                      'hidetips' => null,
-                     'hideexpert' => null
+                     'hideexpert' => null,
                  ], $atts, $tag);
 
         $tips = $this->getPronostics($params['user_id'],
@@ -177,75 +179,77 @@ class Pronostique_Public
         $graph_data = array();
         $cumulated_profit = 0;
         $inv_data = array();
-        while($tips->fetch()) {
+        while ($tips->fetch()) {
             $inv_data[] = $tips->row();
         }
         $data = array_reverse($inv_data);
-        for($i = 0; $i < count($data); $i++) {
+        for ($i = 0; $i < count($data); ++$i) {
             $tip = $data[$i];
             $profit = 0;
-            if (intval($tip['resultat']) == 1) {
+            if (intval($tip['tips_result']) == 1) {
                 $profit = $tip['mise'] * ($tip['cote'] - 1);
-            } elseif (intval($tip['resultat']) == 2) {
+            } elseif (intval($tip['tips_result']) == 2) {
                 $profit = -$tip['mise'];
             }
             $cumulated_profit = floatval($cumulated_profit) + floatval($profit);
             $graph_data[] = $cumulated_profit;
         }
 
-        $emptylabels = implode(',',array_fill(0,count($graph_data),"''"));
+        $emptylabels = implode(',', array_fill(0, count($graph_data), "''"));
         $graphdata = implode(',', $graph_data);
 
         return $this->templater->display('history-graph',
                         array('labels' => $emptylabels,
-                              'graphdata' => $graphdata));
+                              'graphdata' => $graphdata, ));
     }
 
-    public function sc_displayUserPerfSummary($atts = [], $content = null, $tag = '') {
+    public function sc_displayUserPerfSummary($atts = [], $content = null, $tag = '')
+    {
         $atts = array_change_key_case((array) $atts, CASE_LOWER);
         $params = shortcode_atts([
                      'user_id' => null,
                      'hidetips' => null,
-                     'hideexpert' => null
+                     'hideexpert' => null,
                  ], $atts, $tag);
 
-        $gain_sql = " ROUND(SUM( IF(resultat = 1, (cote-1)*mise, IF(resultat = 2, - mise, IF(resultat = 3, 0, 0))) ), 2) as gain";
-        $mises_sql = " ROUND(SUM( IF(resultat IN (1,2,3), mise, 0) ), 2) as mises";
-        $VPNA_sql = " SUM(IF(resultat = 1,1,0)) AS V, SUM(IF(resultat = 3,1,0)) AS N, SUM(IF(resultat = 2,1,0)) AS P, SUM(IF(resultat = 0,1,0)) AS A";
+        $gain_sql = ' ROUND(SUM( IF(tips_result = 1, (cote-1)*mise, IF(tips_result = 2, - mise, IF(tips_result = 3, 0, 0))) ), 2) as gain';
+        $mises_sql = ' ROUND(SUM( IF(tips_result IN (1,2,3), mise, 0) ), 2) as mises';
+        $VPNA_sql = ' SUM(IF(tips_result = 1,1,0)) AS V, SUM(IF(tips_result = 3,1,0)) AS N, SUM(IF(tips_result = 2,1,0)) AS P, SUM(IF(tips_result = 0,1,0)) AS A';
 
-        $where = "1";
-        if($params['user_id'] !== null and is_numeric($params['user_id'])) {
-            $where .= " AND author.id = ".intval($params['user_id']);
+        $where = '1';
+        if ($params['user_id'] !== null and is_numeric($params['user_id'])) {
+            $where .= ' AND author.id = '.intval($params['user_id']);
         }
-        if($params['hidetips'] !== null) {
-            $where .= " AND is_expert = 1";
+        if ($params['hidetips'] !== null) {
+            $where .= ' AND is_expert = 1';
         }
 
         $stats = pods('pronostique')->find(array(
-                            'select' => "count(*) as 'nb_total_tips',".$gain_sql.",".$mises_sql.",".$VPNA_sql,
-                            'where' => $where
+                            'select' => "count(*) as 'nb_total_tips',".$gain_sql.','.$mises_sql.','.$VPNA_sql,
+                            'where' => $where,
         ));
 
         $user_month_profit = pods('pronostique')->find(array(
                             'select' => $gain_sql,
-                            'where' => $where." AND MONTH(date) like MONTH(NOW()) AND YEAR(date) like YEAR(NOW())"
+                            'where' => $where.' AND MONTH(date) like MONTH(NOW()) AND YEAR(date) like YEAR(NOW())',
         ));
 
-        if($user_month_profit->total() == 0 || $user_month_profit->field('gain') === null) {
+        if ($user_month_profit->total() == 0 || $user_month_profit->field('gain') === null) {
             $month_profit = 0;
         } else {
             $month_profit = $user_month_profit->field('gain');
         }
 
-        $yield = Calculator::Yield( $stats->field('mises'), $stats->field('gain'));
+        $yield = Calculator::Yield($stats->field('mises'), $stats->field('gain'));
 
         return $this->templater->display('user-perf-summary',
                             array('stats' => $stats,
                                   'month_profit' => $month_profit,
-                                  'yield' => $yield ));
+                                  'yield' => $yield, ));
     }
 
-    public function sc_displayUserHistoryPagination($atts = [], $content = null, $tag = '') {
+    public function sc_displayUserHistoryPagination($atts = [], $content = null, $tag = '')
+    {
         $atts = array_change_key_case((array) $atts, CASE_LOWER);
         $params = shortcode_atts([
                      'user_id' => '',
@@ -255,9 +259,9 @@ class Pronostique_Public
         $months_with_nb_pari = pods('pronostique')->find(array(
                             'select' => "DATE_FORMAT(date,'%Y-%m') as month, COUNT(*) as nb_tips",
                             'groupby' => 'month',
-                            'where' => "author.id =".$params['user_id'],
+                            'where' => 'author.id ='.$params['user_id'],
                             'orderby' => 'month DESC',
-                            'limit' => 20
+                            'limit' => 20,
                         )
         );
 
@@ -266,17 +270,17 @@ class Pronostique_Public
         $i = 0;
         while ($months_with_nb_pari->fetch()) {
             $month_list[] = $months_with_nb_pari->row();
-            if($params['currentmonth'] == $months_with_nb_pari->field('month')) {
+            if ($params['currentmonth'] == $months_with_nb_pari->field('month')) {
                 $index_current_month = $i;
             }
-            $i++;
+            ++$i;
         }
 
         return $this->templater->display('user-history-pagination',
-                            array( 'months_list' => $month_list,
+                            array('months_list' => $month_list,
                                    'user_id' => $params['user_id'],
                                    'currentmonth' => $params['currentmonth'],
-                                   'index_current_month' => $index_current_month ));
+                                   'index_current_month' => $index_current_month, ));
     }
 
     public function sc_displayMenuPronostic($atts = [], $content = null, $tag = '')
@@ -305,8 +309,6 @@ class Pronostique_Public
                 //                  'href' => '/formulaire-experts', );
             }
         }
-
-
 
         return $this->templater->display('menu-pronostique',
                         array('links' => $links));
@@ -344,7 +346,7 @@ class Pronostique_Public
 
             $profit_class = Formatter::valeur2CSS($e->profit);
 
-            if($is_expert) {
+            if ($is_expert) {
                 $out .= '<p class="bloc_expert">
                         <a href="'.$href_expert.'">'.$e->nom_tipser.'</a>
                         <span class="'.$profit_class.'">'.$profit.' Unités</span> <br />
@@ -352,7 +354,7 @@ class Pronostique_Public
                         <hr/>
                     </p>';
             }
-            if($is_retired) {
+            if ($is_retired) {
                 // FIXME: Ancien contenu pour l'affichage des experts inactifs
                 $out .= '<p>
                         '.$e->nom_tipser.'
@@ -384,49 +386,49 @@ class Pronostique_Public
     {
         $tips = pods('pronostique')->find(
                                 array(
-                                    'select' => "t.ID, resultat, author.ID as user_id, author.user_nicename as username",
+                                    'select' => 't.ID, tips_result, author.ID as user_id, author.user_nicename as username',
                                     'limit' => 0,
-                                    'where' => 'resultat > 0 AND is_expert != 1 AND date BETWEEN (CURDATE() - INTERVAL 365 DAY) AND CURDATE()',
-                                    'orderby' => 'user_id DESC, date DESC'
+                                    'where' => 'tips_result > 0 AND is_expert != 1 AND date BETWEEN (CURDATE() - INTERVAL 365 DAY) AND CURDATE()',
+                                    'orderby' => 'user_id DESC, date DESC',
                                 )
         );
 
-        $res2letter = array(1 => 'V',2 => 'P',3 => 'N');
+        $res2letter = array(1 => 'V', 2 => 'P', 3 => 'N');
         $hotStreaks_by_uid = array();
 
         // create array with hotstreak of all tipster
-        while($tips->fetch()) {
-          $user_id = $tips->field('user_id');
-          if(!isset($hotStreaks_by_uid[$user_id])) {
-              $hotStreaks_by_uid[$user_id] = array(
-                                    "V" => 0,
-                                    "P" => 0,
-                                    "N" => 0,
-                                    "tips_count" => 0,
-                                    "display_name" => $tips->field('username'),
-                                    "user_id" => $user_id,
+        while ($tips->fetch()) {
+            $user_id = $tips->field('user_id');
+            if (!isset($hotStreaks_by_uid[$user_id])) {
+                $hotStreaks_by_uid[$user_id] = array(
+                                    'V' => 0,
+                                    'P' => 0,
+                                    'N' => 0,
+                                    'tips_count' => 0,
+                                    'display_name' => $tips->field('username'),
+                                    'user_id' => $user_id,
                                     );
-          }
-          if($hotStreaks_by_uid[$user_id]['tips_count'] >= 20) {
-              continue;
-          }
-          $hotStreaks_by_uid[$user_id]['tips_count'] += 1;
-          $letter = $res2letter[$tips->field('resultat')];
-          $hotStreaks_by_uid[$user_id][$letter] += 1;
+            }
+            if ($hotStreaks_by_uid[$user_id]['tips_count'] >= 20) {
+                continue;
+            }
+            $hotStreaks_by_uid[$user_id]['tips_count'] += 1;
+            $letter = $res2letter[$tips->field('tips_result')];
+            $hotStreaks_by_uid[$user_id][$letter] += 1;
         }
 
         // create an array in which value are hot-streak string
         $best_id = array();
-        foreach($hotStreaks_by_uid as $uid => $user_hot_streak) {
-          $best_id[$uid] = sprintf('%02d-%02d-%02d', $user_hot_streak['V'], $user_hot_streak['N'], $user_hot_streak['P']);
+        foreach ($hotStreaks_by_uid as $uid => $user_hot_streak) {
+            $best_id[$uid] = sprintf('%02d-%02d-%02d', $user_hot_streak['V'], $user_hot_streak['N'], $user_hot_streak['P']);
         }
         // order that array and keep first 25
         arsort($best_id);
-        $best_id = array_slice($best_id,0,25,true);
+        $best_id = array_slice($best_id, 0, 25, true);
 
         // get hotstreak complete information and add them to the outputed array;
         $best_hotstreak = array();
-        foreach($best_id as $uid => $v2) {
+        foreach ($best_id as $uid => $v2) {
             $best_hotstreak[] = $hotStreaks_by_uid[$uid];
         }
 
@@ -455,9 +457,9 @@ class Pronostique_Public
     public function sc_displayStatsExperts($atts = [], $content = null, $tag = '')
     {
         //$statsglob = StatsDAO::getGlobalStats();
-        $mises_sql = ' ROUND(SUM( IF(resultat IN (1,2,3), mise, 0) ), 2) as mises';
-        $gain_sql = ' ROUND(SUM( IF(resultat = 1, (cote-1)*mise, IF(resultat = 2, - mise, IF(resultat = 3, 0, 0))) ), 2) as gain';
-        $VPNA_sql = " SUM(IF(resultat = 1,1,0)) AS 'V', SUM(IF(resultat = 3,1,0)) AS 'N', SUM(IF(resultat = 2,1,0)) AS 'P', SUM(IF(resultat = 0,1,0)) AS 'A'";
+        $mises_sql = ' ROUND(SUM( IF(tips_result IN (1,2,3), mise, 0) ), 2) as mises';
+        $gain_sql = ' ROUND(SUM( IF(tips_result = 1, (cote-1)*mise, IF(tips_result = 2, - mise, IF(tips_result = 3, 0, 0))) ), 2) as gain';
+        $VPNA_sql = " SUM(IF(tips_result = 1,1,0)) AS 'V', SUM(IF(tips_result = 3,1,0)) AS 'N', SUM(IF(tips_result = 2,1,0)) AS 'P', SUM(IF(tips_result = 0,1,0)) AS 'A'";
         $stats = pods('pronostique')->find(
                         array(
                             'select' => $mises_sql.','.$gain_sql.','.$VPNA_sql,
@@ -507,21 +509,65 @@ class Pronostique_Public
 
         $template = $params['display'].'-pronostics';
 
-
-        return $this->templater->display($template,array('all_tips' => $tips,
+        return $this->templater->display($template, array('all_tips' => $tips,
               'show_sport' => $show_sport,
               'show_user' => $show_user,
               'show_pari' => $show_pari,
               'isUserAdherent' => $isUserAdherent,
-              'direction' => $params['direction']
+              'direction' => $params['direction'],
           ));
     }
 
-    public function sc_displayUserStatsSide($atts = [], $content = null, $tag = '') {
+    public function sc_displayUserStatsSide($atts = [], $content = null, $tag = '')
+    {
         return 'sc_displayUserStatsSide';
     }
 
+    public function sc_displayGlobalPerf($atts = [], $content = null, $tag = '')
+    {
+        $atts = array_change_key_case((array) $atts, CASE_LOWER);
+        $params = shortcode_atts([
+                                    'user_id' => null,
+                                    'sport' => null,
+                                    'excludesport' => null,
+                                    'month' => null,
+                                    'viponly' => 0,
+                                    'hidetips' => null,
+                                    'hideexpert' => null,
+                                    'hidevip' => null,
+                                    'with_result' => null,
+                                    'offset' => 0,
+                                    'limit' => 20,
+                                    'display' => 'list',
+                                    'direction' => 'column',
+                                     ], $atts, $tag);
 
+        $dateactu = strftime('%Y-%m-');
+        $gain_sql = ' ROUND(SUM( IF(tips_result = 1, (cote-1)*mise, IF(tips_result = 2, - mise, IF(tips_result = 3, 0, 0))) ), 2) as gain';
+
+        $gain_month_res = pods('pronostique')->find(array(
+                            'select' => $gain_sql,
+                            'where' => 'tips_result > 0 AND is_expert = 0 AND actif = 1 AND MONTH(date) like MONTH(NOW()) AND YEAR(date) like YEAR(NOW())',
+        ));
+        $gain_global_res = pods('pronostique')->find(array(
+                            'select' => $gain_sql,
+                            'where' => 'tips_result > 0 AND is_expert = 0', ));
+
+        if ($gain_month_res->total() == 0 || $gain_month_res->field('gain') === null) {
+            $gain_month = 0;
+        } else {
+            $gain_month = $gain_month_res->field('gain');
+        }
+        if ($gain_global_res->total() == 0 || $gain_global_res->field('gain') === null) {
+            $gain_global = 0;
+        } else {
+            $gain_global = $gain_global_res->field('gain');
+        }
+
+        return $this->templater->display('global-stats-tipster', array(
+                            'gain_month' => $gain_month,
+                            'gain_global' => $gain_global, ));
+    }
     //######################
     //   RLY USED
     //######################
@@ -539,8 +585,8 @@ class Pronostique_Public
 
         $pronos = pods('pronostique')->find(
             array(
-                'select' => 'ROUND(SUM( IF(resultat = 1, (cote-1)*mise, IF(resultat = 2, - mise, IF(resultat = 3, 0, 0))) ), 2) AS Gain, t.*',
-                'where' => 'resultat > 0'.$cond_month,
+                'select' => 'ROUND(SUM( IF(tips_result = 1, (cote-1)*mise, IF(tips_result = 2, - mise, IF(tips_result = 3, 0, 0))) ), 2) AS Gain, t.*',
+                'where' => 'tips_result > 0'.$cond_month,
                 'limit' => $max,
                 'orderby' => 'Gain Desc',
                 'groupby' => 'author.id',
@@ -567,7 +613,7 @@ class Pronostique_Public
             'where' => '1 ',
         );
 
-        if ($user_id === "0") {
+        if ($user_id === '0') {
             $params['where'] .= ' AND author.id = '.get_current_user_id();
         } elseif (is_numeric($user_id)) {
             $params['where'] .= ' AND author.id = '.$user_id;
@@ -584,27 +630,26 @@ class Pronostique_Public
         }
 
         if ($hidetips !== null) {
-            $params['where'] .= " AND is_expert = 1";
+            $params['where'] .= ' AND is_expert = 1';
         }
 
         if ($hideexpert !== null) {
-            $params['where'] .= " AND is_expert = 0";
+            $params['where'] .= ' AND is_expert = 0';
         }
 
-        if ($hidevip !== null && $hidevip != "0") {
-            $params['where'] .= " AND is_vip = 0";
+        if ($hidevip !== null && $hidevip != '0') {
+            $params['where'] .= ' AND is_vip = 0';
         }
 
-        if ($viponly !== null && $viponly != "0") {
-            $params['where'] .= " AND is_vip = 1";
+        if ($viponly !== null && $viponly != '0') {
+            $params['where'] .= ' AND is_vip = 1';
         }
-
 
         if ($with_result !== null) {
             if (intval($with_result) === 1) {
-                $params['where'] .= " AND resultat IS NOT NULL AND resultat != 0";
+                $params['where'] .= ' AND tips_result IS NOT NULL AND tips_result != 0';
             } else {
-                $params['where'] .= " AND (resultat IS NULL OR resultat = '')";
+                $params['where'] .= " AND (tips_result IS NULL OR tips_result = '')";
             }
         }
 
