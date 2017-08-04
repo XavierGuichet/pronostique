@@ -498,13 +498,10 @@ class Pronostique_Public
                                      $params['limit'],
                                      'DESC');
 
-                                     echo "<pre>";
-                                     var_dump($params);
-                                     echo "</pre>";
-
         $show_sport = ($params['sport'] === null);
 
         $show_user = ($params['user_id'] === null);
+        $show_pari = !(is_front_page());
 
         $isUserAdherent = UsersDAO::isUserInGroup(get_current_user_id(), UsersDAO::GROUP_ADHERENTS);
 
@@ -514,6 +511,7 @@ class Pronostique_Public
         return $this->templater->display($template,array('all_tips' => $tips,
               'show_sport' => $show_sport,
               'show_user' => $show_user,
+              'show_pari' => $show_pari,
               'isUserAdherent' => $isUserAdherent,
               'direction' => $params['direction']
           ));
@@ -606,11 +604,9 @@ class Pronostique_Public
             if (intval($with_result) === 1) {
                 $params['where'] .= " AND resultat IS NOT NULL AND resultat != 0";
             } else {
-                $params['where'] .= " AND resultat IS NULL";
+                $params['where'] .= " AND (resultat IS NULL OR resultat = '')";
             }
         }
-
-        echo $params['where']."<br/>";
 
         if ($limit !== null) {
             $params['limit'] = $limit;
