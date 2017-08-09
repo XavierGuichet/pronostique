@@ -123,7 +123,6 @@ class Pronostique {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/widgets/tipster-stats.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/widgets/tipster-last-tips.php';
 
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'dao/stats-dao.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'dao/users-dao.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'tools/formatter.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'tools/calculator.php';
@@ -187,7 +186,7 @@ class Pronostique {
         $this->loader->add_filter( 'comments_open', $plugin_public, 'prono_comment_open', 10, 2 );
         $this->loader->add_action( 'pods_api_post_save_pod_item_pronostique', $plugin_public, 'create_linked_prono_post', 10, 3);
         $this->loader->add_filter( 'pre_get_posts', $plugin_public, 'add_custom_types' );
-        
+
 	}
 
 	/**
