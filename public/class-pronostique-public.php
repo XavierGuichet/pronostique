@@ -361,58 +361,26 @@ class Pronostique_Public
 
     public function sc_displayListExperts($atts = [], $content = null, $tag = '')
     {
-        trigger_error('Deprecated '.$tag.', should be a widget.', E_USER_NOTICE);
         $atts = array_change_key_case((array) $atts, CASE_LOWER);
         $params = shortcode_atts([
                                          'limit' => 'all',
                                      ], $atts, $tag);
 
         // TODO this should request directly only actif / all or inactif experts
-        $experts = StatsDAO::getAllExpertsStats('');
+        $mises_sql = ' ROUND(SUM( IF(tips_result IN (1,2,3), mise, 0) ), 2) as mises';
+        $gain_sql = ' ROUND(SUM( IF(tips_result = 1, (cote-1)*mise, IF(tips_result = 2, - mise, IF(tips_result = 3, 0, 0))) ), 2) as gain';
+        $experts = pods('pronostique')->find(
+                        array(
+                            'select' => $mises_sql.','.$gain_sql.', author.ID as user_id, author.user_nicename as username',
+                            'where' => 'is_expert = 1',
+                            'groupby' => 'author.ID',
+                            'orderby' => 'date DESC'
+                        ));
 
-        $out = '';
 
-        foreach ($experts as $e) {
-            $is_expert = UsersDAO::isUserInGroup($e->user_id, UsersDAO::GROUP_EXPERTS);
-            if ($is_expert && $params['limit'] == 'inactif') {
-                continue;
-            }
+        $tpl_params = array('experts' => $experts, 'limit' => $params['limit']);
 
-            $is_retired = UsersDAO::isUserInGroup($e->user_id, UsersDAO::GROUP_RETIRED_EXPERTS);
-            if ($is_retired && $params['limit'] == 'actif') {
-                continue;
-            }
-
-            $yield = Formatter::prefixSign(StatsDAO::calculateYield($e));
-
-            $href_expert = '/bilan-expert/?id='.$e->user_id;
-
-            $profit = Formatter::prefixSign($e->profit ? $e->profit : 0);
-
-            $profit_class = Formatter::valeur2CSS($e->profit);
-
-            if ($is_expert) {
-                $out .= '<p class="bloc_expert">
-                        <a href="'.$href_expert.'">'.$e->nom_tipser.'</a>
-                        <span class="'.$profit_class.'">'.$profit.' Unités</span> <br />
-                        <span class="subtitle">Yield : '.$yield.'</span>
-                        <hr/>
-                    </p>';
-            }
-            if ($is_retired) {
-                // FIXME: Ancien contenu pour l'affichage des experts inactifs
-                $out .= '<p>
-                        '.$e->nom_tipser.'
-                        <span class="'.$profit_class.'">'.$profit.' Unités</span>
-                    </p>';
-            }
-        }
-
-        if (!count($experts)) {
-            $out .= '<em>Aucuns experts...</em>';
-        }
-
-        return $out;
+        return $this->templater->display('list-experts', $tpl_params);
     }
 
     public function sc_getListTop($atts = [], $content = null, $tag = '')
