@@ -34,10 +34,6 @@ class Pronostique_Public
 
     private $templater;
 
-    private $table_user;
-    private $table_tips;
-    private $gain_sql;
-
 /**
  * Initialize the class and set its properties.
  *
@@ -52,10 +48,6 @@ class Pronostique_Public
         $this->plugin_name = '';
         $this->version = '';
 
-        global $wpdb;
-        $this->table_user = $wpdb->prefix.'users';
-
-        $this->table_tips = $wpdb->prefix.'bmk_tips';
         $this->templater = new TemplateEngine(__DIR__);
     }
 
@@ -108,10 +100,21 @@ class Pronostique_Public
         }
     }
 
+    function add_custom_types( $query ) {
+    if( (is_category() || is_tag()) && $query->is_archive() && empty( $query->query_vars['suppress_filters'] ) ) {
+        $query->set( 'post_type', array(
+         'post', 'prono-post'
+            ));
+        }
+    return $query;
+    }
+
     public function register_widgets()
     {
+        register_widget('TipsterStats_Widget');
         register_widget('TopTipster_Widget');
         register_widget('TopVip_Widget');
+        register_widget('TipsterLastTips_Widget');
     }
 
     public function register_shortcodes()
@@ -135,12 +138,10 @@ class Pronostique_Public
         add_shortcode('user-history-pagination', array($this, 'sc_displayUserHistoryPagination'));
 
         add_shortcode('global-perf', array($this, 'sc_displayGlobalPerf'));
-        // add_shortcode('stats-experts-details', 'getStatsExpertsDetailsHtml');
-        // add_shortcode('stats-tipsters-side', 'getTipsterStatsSide');
 
         add_shortcode('listParisTipsterParMois', array($this, 'deprecated'));
         add_shortcode('liste-top-tipsers-mois', array($this, 'deprecated'));
-        add_shortcode('liste-prono-experts', array($this, 'deprecated')); //getPronosExperts
+        add_shortcode('liste-prono-experts', array($this, 'deprecated'));
         add_shortcode('liste-paris-experts',  array($this, 'deprecated'));
         add_shortcode('liste-experts-actifs',   array($this, 'deprecated'));
         add_shortcode('liste-experts-inactifs', array($this, 'deprecated'));
@@ -149,6 +150,53 @@ class Pronostique_Public
     public static function deprecated($atts = [], $content = null, $tag = '')
     {
         trigger_error('Deprecated shortcode used : '.$tag, E_USER_NOTICE);
+    }
+
+    /*
+     *  Create a prono-post if none are associated
+     *  Set category of prono-post and sport taxonomy
+     *  Associate the prono-post to pronostique and the the inverted relation
+     */
+    public function create_linked_prono_post($pieces, $is_new_item, $id) {
+        $post_id = false;
+        if (isset($pieces[ 'fields' ][ 'post' ][ 'value' ])) {
+            $post_id = (int) $pieces[ 'fields' ][ 'post' ][ 'value' ];
+        }
+        $category = array();
+        if (!$post_id) {
+            if((int) $pieces[ 'fields' ][ 'is_vip' ][ 'value' ] == 1) {
+                // TODO: get this by an admin param
+                // $category[] = $vip_category->term_id;
+                // $vip_category = get_term_by('slug', 'vip', 'category');
+                // if ($vip_category->term_id) {
+                // }
+            }
+            elseif((int) $pieces[ 'fields' ][ 'is_expert' ][ 'value' ] == 1) {
+                $category[] = 6; // TODO: get this by an admin param
+                // $expert_category = get_term_by('slug', 'les-paris-de-nos-experts', 'category');
+                // if ($expert_category->term_id) {
+                //     $category[] = $expert_category->term_id;
+                // }
+            }
+            $new_post = array(
+                'post_title' => $pieces[ 'fields' ][ 'name' ][ 'value' ],
+                'post_content' => $pieces[ 'fields' ][ 'analyse' ][ 'value' ],
+                'post_status' => 'publish',
+                'post_date' => date('Y-m-d H:i:s'),
+                'post_author' => $pieces[ 'fields' ][ 'author' ][ 'value' ],
+                'post_type' => 'prono-post',
+                'meta_input' => array('pronostique' => $id)
+            );
+            if (count($category) > 0) {
+                $new_post['post_category'] = $category;
+            }
+            $post_id = wp_insert_post($new_post);
+            wp_set_object_terms($post_id, intval($pieces[ 'fields' ][ 'sport' ][ 'value' ]), 'sport', false);
+
+            $prono = pods('pronostique',$id);
+            $prono->save(array('post' => $post_id));
+
+        }
     }
 
     //######################
@@ -213,6 +261,14 @@ class Pronostique_Public
         if ($params['hidetips'] !== null) {
             $where .= ' AND is_expert = 1';
         }
+        $hide_month_profit = false;
+        if ($params['month'] !== null) {
+            if (preg_match('/^[0-9]{4}\-[0-9]{2}$/',$params['month'])) {
+                $hide_month_profit = true;
+                $where .= " AND date LIKE '%".$params['month']."%'";
+            }
+        }
+
 
         $stats = pods('pronostique')->find(array(
                             'select' => "count(*) as 'nb_total_tips',".$gain_sql.','.$mises_sql.','.$VPNA_sql,
@@ -235,7 +291,8 @@ class Pronostique_Public
         return $this->templater->display('user-perf-summary',
                             array('stats' => $stats,
                                   'month_profit' => $month_profit,
-                                  'yield' => $yield, ));
+                                  'hide_month_profit' => $hide_month_profit,
+                                  'yield' => $yield ));
     }
 
     public function sc_displayUserHistoryPagination($atts = [], $content = null, $tag = '')
@@ -286,17 +343,15 @@ class Pronostique_Public
             if ($est_tipster) {
                 $links[] = array('title' => 'Mes pronostics',
                                  'href' => '/tipser-stats/?id='.$user_id, );
-                // $links[] = array('title' => 'Ajouter un pronostic',
-                //                  'href' => '/formulaire-pronostics', );
-                $links[] = array('title' => 'Ajouter un pronostic (pod)',
-                                 'href' => '/formulaire-pronostic-new', );
+                $links[] = array('title' => 'Ajouter un pronostic',
+                                 'href' => '/formulaire-pronostics', );
             } else {
                 $links[] = array('title' => 'S\'enregistrer comme tipster',
                                  'href' => '/formulaire-tipseur', );
             }
             if ($est_expert) {
-                // $links[] = array('title' => 'Ajouter un prono. expert',
-                //                  'href' => '/formulaire-experts', );
+                $links[] = array('title' => 'Ajouter un prono. expert',
+                                 'href' => '/formulaire-experts', );
             }
         }
 
@@ -475,10 +530,12 @@ class Pronostique_Public
                                      $params['limit'],
                                      'DESC');
 
-        $show_sport = ($params['sport'] === null);
-
+        $show_sport = ($params['sport'] === null && is_front_page());
         $show_user = ($params['user_id'] === null);
         $show_pari = !(is_front_page());
+        $show_match_result = !(is_front_page());
+        $show_profit = !(is_front_page());
+        $use_poolbox = ($params['use_poolbox'] !== null);
 
         $isUserAdherent = UsersDAO::isUserInGroup(get_current_user_id(), UsersDAO::GROUP_ADHERENTS);
 
@@ -488,14 +545,12 @@ class Pronostique_Public
               'show_sport' => $show_sport,
               'show_user' => $show_user,
               'show_pari' => $show_pari,
+              'show_match_result' => $show_match_result,
+              'show_profit' => $show_profit,
+              'use_poolbox' => $use_poolbox,
               'isUserAdherent' => $isUserAdherent,
               'direction' => $params['direction'],
           ));
-    }
-
-    public function sc_displayUserStatsSide($atts = [], $content = null, $tag = '')
-    {
-        return 'sc_displayUserStatsSide';
     }
 
     public function sc_displayGlobalPerf($atts = [], $content = null, $tag = '')
@@ -565,8 +620,6 @@ class Pronostique_Public
 
     public function getPronostics($user_id = null, $sport = null, $exclude_sport = null, $month = null, $hidetips = null, $hideexpert = null, $hidevip = null, $viponly = null, $with_result = null, $offset = 0, $limit = null, $sort_order = 'ASC')
     {
-        global $wpdb;
-
         $params = array(
             'offset' => $offset,
             'orderby' => 'date '.$sort_order,
@@ -609,7 +662,7 @@ class Pronostique_Public
             if (intval($with_result) === 1) {
                 $params['where'] .= ' AND tips_result IS NOT NULL AND tips_result != 0';
             } else {
-                $params['where'] .= " AND (tips_result IS NULL OR tips_result = '')";
+                $params['where'] .= " AND (tips_result IS NULL OR tips_result = '' OR tips_result = 0)";
             }
         }
 
@@ -638,6 +691,7 @@ class Pronostique_Public
                             'limit' => 20,
                             'display' => 'list',
                             'direction' => 'column',
+                            'use_poolbox' => null,
                              ], $atts, $tag);
 
         return $params;

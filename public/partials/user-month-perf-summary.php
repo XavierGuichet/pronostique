@@ -13,6 +13,6 @@
     <div class="stat_expert" style="width:195px;border-width:1px;">
         <span class="stat_title">Yield</span>
         <br/>
-        <span class="stat_value"><?=StatsDAO::calculateYield2($sExpM->mises, $sExpM->profit)?></span>
+        <span class="stat_value"><?=Calculator::Yield($sExpM->mises, $sExpM->profit)?>%</span>
     </div>
 </div>

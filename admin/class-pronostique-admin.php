@@ -40,6 +40,8 @@ class Pronostique_Admin {
 	 */
 	private $version;
 
+    private $templater;
+
 	/**
 	 * Initialize the class and set its properties.
 	 *
@@ -52,6 +54,7 @@ class Pronostique_Admin {
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
 
+        $this->templater = new TemplateEngine(__DIR__);
 	}
 
 	/**
@@ -60,21 +63,7 @@ class Pronostique_Admin {
 	 * @since    1.0.0
 	 */
 	public function enqueue_styles() {
-
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Pronostique_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Pronostique_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
-
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/pronostique-admin.css', array(), $this->version, 'all' );
-
 	}
 
 	/**
@@ -83,20 +72,9 @@ class Pronostique_Admin {
 	 * @since    1.0.0
 	 */
 	public function enqueue_scripts() {
-
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Pronostique_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Pronostique_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
-
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/pronostique-admin.js', array( 'jquery' ), $this->version, false );
+		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/pronostique-admin.js', array( 'jquery','jquery-form' ), $this->version, false );
+        wp_localize_script( $this->plugin_name, 'prono_ajax_object',
+            array( 'ajax_url' => admin_url( 'admin-ajax.php' ), 'nonce' => wp_create_nonce( 'pronostique-quick-edit' ), 'action' => 'quick_edit_pronostique' ) );
 
 	}
 
@@ -104,6 +82,56 @@ class Pronostique_Admin {
         if (function_exists('add_options_page')) {
             add_options_page('Configuration du plugin pronostique', 'Pronostique', 'manage_options', 'pronostique_settings', array($this,'printPronosticsAdminPage'));
         }
+    }
+
+    public function add_quick_edit_pronostique() {
+        if (function_exists('add_menu_page')) {
+            add_menu_page(
+                __( 'Pronostique sans resultat', 'textdomain' ),
+                __( 'Prono w/o result', 'textdomain' ),
+                'manage_options',
+                'pronostiques_quick_edit',
+                array($this,'printPronosticsQuickEditAdminPage'),
+                '',
+                4
+            );
+        }
+    }
+
+    public function ajax_quick_edit_pronostique() {
+        check_ajax_referer( 'pronostique-quick-edit', 'security' );
+        $id = intval( $_POST['ID'] );
+        $tips_result = intval( $_POST['tips_result'] );
+        $match_result = sanitize_text_field( $_POST['match_result'] );
+
+        $errors = array();
+        if(!$id) {
+            $errors[] = "Erreur Id, contactez Xavier";
+        }
+        if(!$tips_result) {
+            $errors[] = "Résultat du pari non choisi";
+        }
+        if(count($errors) == 0) {
+            $prono = pods('pronostique',$id);
+            if(!$prono->save(array('tips_result' => $tips_result,'match_result' => $match_result))) {
+                $errors[] = "Pod erreur: impossible de sauvegarder";
+            }
+        }
+        $success = (count($errors) == 0 ? 1 : 0);
+        echo json_encode( array("success" => $success,
+                                "errors" => $errors));
+
+    	wp_die();
+    }
+
+    public function printPronosticsQuickEditAdminPage() {
+        $tipsWithoutResult = pods('pronostique')->find(
+                            array('limit' => 0,
+                                'where' => '(tips_result = 0 OR tips_result IS NULL) AND date < NOW()',
+                                'orderby' => 'date DESC'
+                            ));
+
+        echo $this->templater->display('pronostique-quick-edit', array('tips' => $tipsWithoutResult));
     }
 
     public function printPronosticsAdminPage()
@@ -128,13 +156,13 @@ class Pronostique_Admin {
         }
         if (isset($_POST['migrate_std_tips'])) {
             check_admin_referer('pronostics-migrate-tips');
-            $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips." t WHERE tips_ID > ".$std_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,250");
+            $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips." t WHERE tips_ID > ".$std_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,100");
             $std_tips_last_imported_id = $this->migrate_tips($all_tips, 0);
             update_option( 'pronostique_migrate_last_id', $std_tips_last_imported_id );
         }
         if (isset($_POST['migrate_expert_tips'])) {
             check_admin_referer('pronostics-migrate-tips');
-            $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips_experts." t WHERE tips_ID > ".$expert_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,250");
+            $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips_experts." t WHERE tips_ID > ".$expert_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,100");
             $expert_tips_last_imported_id = $this->migrate_tips($all_tips, 1);
             update_option( 'pronostique_migrate_expert_last_id', $expert_tips_last_imported_id );
         }
@@ -164,10 +192,12 @@ class Pronostique_Admin {
             $bookmaker_ids[$pods_bookmaker->field('name')] = $pods_bookmaker->field('id');
         }
 
-        $pods_sport = pods('sport')->find(null, 100);
+        $sport_taxonomy = get_terms( 'sport',array(
+            'hide_empty' => false,
+        ) );
         $sport_ids = array();
-        while ( $pods_sport->fetch() ) {
-            $sport_ids[$pods_sport->field('name')] = $pods_sport->field('id');
+        foreach($sport_taxonomy as $sport) {
+            $sport_ids[$sport->name] = $sport->term_id;
         }
 
         $last_id = 0;
@@ -198,30 +228,45 @@ class Pronostique_Admin {
                 $code_poolbox = $tips->tips_code_poolbox;
             }
 
+            $match_result = '';
+            if (isset($tips->tips_resultat_str)) {
+                $match_result = $tips->tips_resultat_str;
+            }
+
+            $post_id = 0;
+            //duplicate post as a custom prono-post
+            // $old_post = get_post($tips->tips_post_id);
+            // $old_post->ID = '';
+            // $old_post->post_type = 'prono-post';
+            //
+            // $post_id = wp_insert_post($old_post);
+            // wp_set_object_terms( $post_id, $sport_id, 'sport' );
+
             $pods_data[] = array(
                 'name' => $tips->tips_match,
+                'sport' => $sport_id,
                 'pari' => $tips->tips_pari,
                 'cote' => $tips->tips_cote,
                 'mise' => $tips->tips_mise,
-                'analyse' => $tips->tips_analyse,
-                'created' => $tips->tips_created_at,
-                'resultat' => $tips->tips_resultat,
-                'actif' => $tips->tips_actif,
-                'sport' => $sport_id,
                 'bookmaker' => $bookmaker_id,
                 'date' => $date_match,
                 'code_poolbox' => $code_poolbox,
-                'author' => $tips->user_id,
-                'post' => $tips->tips_post_id,
+                'analyse' => $tips->tips_analyse,
+                'tips_result' => $tips->tips_resultat,
+                'match_result' => $match_result,
                 'is_expert' => $is_expert,
                 'is_vip' => 0,
+                'post' => $post_id,
+                'created' => $tips->tips_created_at,
+                'author' => $tips->user_id,
                 // 'miniature' => $tips->,
                 // 'modified' => $tips->,
                 // 'permalink' => , //Is auto set
             );
             $last_id = $tips->tips_ID;
         }
-        $api = pods_api( 'prono' );
+        // $last_id = 0;
+        $api = pods_api( 'pronostique' );
         $ids = $api->import( $pods_data, true );
         return $last_id;
     }

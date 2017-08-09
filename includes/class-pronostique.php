@@ -120,6 +120,8 @@ class Pronostique {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-pronostique-public.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/widgets/top-tipsters.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/widgets/top-vip.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/widgets/tipster-stats.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/widgets/tipster-last-tips.php';
 
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'dao/stats-dao.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'dao/users-dao.php';
@@ -162,6 +164,8 @@ class Pronostique {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
         $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_option_page');
+        $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_quick_edit_pronostique');
+        $this->loader->add_action( 'wp_ajax_quick_edit_pronostique', $plugin_admin, 'ajax_quick_edit_pronostique');
 	}
 
 	/**
@@ -181,6 +185,9 @@ class Pronostique {
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
         $this->loader->add_action( 'save_post', $plugin_public, 'update_comments_meta' );
         $this->loader->add_filter( 'comments_open', $plugin_public, 'prono_comment_open', 10, 2 );
+        $this->loader->add_action( 'pods_api_post_save_pod_item_pronostique', $plugin_public, 'create_linked_prono_post', 10, 3);
+        $this->loader->add_filter( 'pre_get_posts', $plugin_public, 'add_custom_types' );
+        
 	}
 
 	/**

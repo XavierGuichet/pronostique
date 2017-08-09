@@ -42,12 +42,12 @@ class TopTipster_Widget extends WP_Widget {
 			$max = intval($instance['limit_count']);
 		}
         // TODO : change to MONTH(NOW) and YEAR(NOW)
-        $cond_month = $limit_to_month == 'true' ? ' AND actif = 1 AND MONTH(date) = 3 AND YEAR(date) = 2014' : '';
+        $cond_month = $limit_to_month == 'true' ? ' AND MONTH(date) = 3 AND YEAR(date) = 2014' : '';
 
         $pronos = pods('pronostique')->find(
             array(
-                'select' => 'ROUND(SUM( IF(resultat = 1, (cote-1)*mise, IF(resultat = 2, - mise, IF(resultat = 3, 0, 0))) ), 2) AS Gain, t.*',
-                'where' => 'resultat > 0'.$cond_month,
+                'select' => 'ROUND(SUM( IF(tips_result = 1, (cote-1)*mise, IF(tips_result = 2, - mise, IF(tips_result = 3, 0, 0))) ), 2) AS Gain, t.*',
+                'where' => 'tips_result > 0'.$cond_month,
                 'limit' => $max,
                 'orderby' => 'Gain Desc',
                 'groupby' => 'author.id',

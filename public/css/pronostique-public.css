@@ -15,8 +15,8 @@
  * Pods Form
  */
 
-.entry-content li.pods-field {
-    line-height: inherit;
+.entry-content li.pods-field, .pods-field, p.pods-add-file {
+    overflow: auto;
 }
 
 .pods-form-front .pods-field-label {

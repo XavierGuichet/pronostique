@@ -2,3 +2,92 @@
  * All of the CSS for your admin-specific functionality should be
  * included in this file.
  */
+
+/* #############
+PRONOSTIQUE QUICK EDIT
+############# */
+.prono-quick-edit-container {
+    width: 100%;
+    margin: 0 -10px;
+}
+.prono-quick-edit-col {
+    width: 20%;
+    padding: 10px;
+    box-sizing: border-box;
+    float:left;
+}
+.prono-quick-edit-col:nth-child(5n):after {
+    clear: both;
+}
+.prono-quick-edit-item {
+    width: 100%;
+    border: 1px solid darkgrey;
+    border-radius: 10px 10px 0 0;
+    background: #fff;
+    -webkit-box-shadow: 0 1px 1px 0 rgba(0,0,0,.1);
+    box-shadow: 0 1px 1px 0 rgba(0,0,0,.1);
+    overflow: auto;
+}
+.prono-quick-edit-header {
+    background: #ddd;
+    padding: 0.5rem 1rem;
+    border-radius: 10px 10px 0 0;
+    overflow: auto;
+    border-bottom: 1px solid darkgrey;
+}
+.prono-quick-edit-header h2 {
+    margin: 0 0 0.5rem;
+    text-align: center;
+}
+.prono-quick-edit-header .date {
+    text-align: center;
+    margin-top: 0;
+    font-weight: bold;
+}
+.prono-quick-edit-header .sport {
+    float: left;
+    margin: 0;
+}
+.prono-quick-edit-header .tipster {
+    float: right;
+    margin: 0;
+}
+.prono-quick-edit-content {
+    position: relative;
+    padding: 0.5rem 1.5em;
+    max-height: 120px;
+    overflow: hidden;
+}
+.prono-quick-edit-content.expanded {
+    max-height: none;
+}
+.prono-quick-edit-item .button-secondary {
+    float: right;
+    margin-right: 0.5em;
+}
+.prono-quick-edit-tips {
+    padding: 0.5rem;
+    clear: both;
+}
+.prono-quick-edit-tips table {
+    width: 100%;
+    border: 1px solid darkgrey;
+}
+.prono-quick-edit-form {
+    padding: 0.5rem;
+}
+.prono-quick-edit-field label {
+    display: block;
+    font-weight: 700;
+}
+.prono-quick-edit-field input[type=text] {
+    display: block;
+    height: 27px;
+    font-size:1.125em;
+    border-radius: 4px;
+    width: 100%;
+}
+.prono-quick-edit-form .button-primary {
+    float: right;
+    margin: 0.5em;
+}

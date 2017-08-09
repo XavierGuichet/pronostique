@@ -3,10 +3,14 @@
     <span class="stat_title">Profit total</span><br/>
     <span class="stat_value <?=Formatter::valeur2CSS($stats->field('gain'))?>"><?=$stats->field('gain')?></span>
 </div>
+<?php
+if (!$hide_month_profit) {
+    ?>
 <div class="stat_expert">
     <span class="stat_title">Ce mois</span><br/>
     <span class="stat_value <?=Formatter::valeur2CSS($month_profit)?>"><?=$month_profit?></span>
 </div>
+<?php } ?>
 <div class="stat_expert">
     <span class="stat_title">Tips publiés</span><br/>
     <span class="stat_value"><?=$stats->field('nb_total_tips')?></span>

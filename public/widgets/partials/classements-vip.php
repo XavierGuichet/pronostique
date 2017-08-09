@@ -7,10 +7,6 @@
         </th>
     </tr>
     <?=$entetes?>
-    <!-- 'user_id' => $user_results->display('author.ID'),
-    'name' => $user_results->display('author.user_nicename'),
-    'gain' => $user_results->display('Gain'),
-    'yield' -->
 <?php
 $i = 0;
 foreach($row as $user_stat) {

@@ -43,8 +43,8 @@ class TopVip_Widget extends WP_Widget {
 
         $user_results = pods('pronostique')->find(
             array(
-                'select' => 'ROUND(SUM( IF(resultat = 1, (cote-1)*mise, IF(resultat = 2, - mise, IF(resultat = 3, 0, 0))) ), 2) AS Gain, SUM(mise) as Mise_total, t.*',
-                'where' => 'resultat > 0 AND is_expert = 1',
+                'select' => 'ROUND(SUM( IF(tips_result = 1, (cote-1)*mise, IF(tips_result = 2, - mise, IF(tips_result = 3, 0, 0))) ), 2) AS Gain, SUM(mise) as Mise_total, t.*',
+                'where' => 'tips_result > 0 AND is_expert = 1',
                 'orderby' => 'Gain Desc',
                 'groupby' => 'author.id',
             )
@@ -61,7 +61,7 @@ class TopVip_Widget extends WP_Widget {
             );
         }
 
-        uasort($top_vips, topvip_yieldsort);
+        uasort($top_vips, 'topvip_yieldsort');
 
 
 

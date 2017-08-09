@@ -6,63 +6,78 @@ if ($all_tips->total() > 0) {
         <th class="date2">Date</th>
         <th class="resultat2"></th>
         <th class="match2">Match</th>
-        <?=($show_pari ? '<th class="">Pari</th>' : '')?>
         <?=($show_sport ? '<th class="sport2">Sport</th>' : '')?>
+        <?=($show_pari ? '<th class="pari2">Pari</th>' : '')?>
+        <?=($show_match_result ? '<th class="match_result">Résultat</th>' : '')?>
         <th class="mise2">Mise</th>
         <?=($show_user ? '<th class="tipster2">Tipster</th>' : '')?>
         <th class="cote2">Cote</th>
+        <?=($show_profit ? '<th class="gain2">Profit</th>' : '')?>
     </tr>
 <?php
 while ( $all_tips->fetch() ) {
-    $all_tipser_str = $show_user ? "<td><a href=\"/tipser-stats/?id=".$all_tips->field('author.ID')."\">".$all_tips->field('author.user_nicename')."</a></td>" : '';
-    $val_sport = $show_sport ? '<td class="sport2">'.$all_tips->display('sport').'</td>' : '';
     $nb_comments = 0;
+    $link = "/pronostique/".$all_tips->field('permalink');
     if($all_tips->field('post.ID') != 0) {
         $comments_count = get_comment_count($all_tips->field('post.ID'));
         $nb_comments = $comments_count ? $comments_count['approved'] : '';
+        $link = get_permalink($all_tips->field('post.ID'));
     }
-    $code_poolbox = !empty($all_tips->field('code_poolbox')) ? $all_tips->field('code_poolbox') : $all_tips->field('pari');
+    $pari = mb_substr($all_tips->field('pari'),0,6);
+    if($use_poolbox && !empty($all_tips->field('code_poolbox'))) {
+        $pari = $all_tips->field('code_poolbox');
+    }
 
     $isTipsVisible = ($isUserAdherent || $all_tips->field('tips_result') || !$all_tips->field('is_vip'));
 
     if($isTipsVisible) {
 ?>
     <tr>
-        <td class="date2"><?=date_i18n("j/m", strtotime($all_tips->field('date')))?></td>
-        <td class="resultat2"><i class="fa <?=Formatter::resultat2str($all_tips->field('tips_result'))?>" aria-hidden="true"></i>
-</td>
+        <td class="date2">
+            <?=date_i18n("j/m", strtotime($all_tips->field('date')))?>
+        </td>
+        <td class="resultat2">
+            <i class="fa <?=Formatter::resultat2str($all_tips->field('tips_result'))?>" aria-hidden="true"></i>
+        </td>
         <td class="match2">
             <strong>
-                <a class="simplelink" href="/pronostique/<?=$all_tips->field('permalink')?>"><?=stripslashes($all_tips->display('name'))?></a>
+                <a class="simplelink" href="<?=$link?>"><?=stripslashes($all_tips->display('name'))?></a>
                 <span class="tips-comm-number"><?=$nb_comments?></span>
             </strong>
         </td>
-        <?=($show_pari ? '<td>'.substr($code_poolbox,0,6).'</td>' : '')?>
-        <?=$val_sport?>
+        <?=($show_sport ? '<td class="sport2">'.$all_tips->display('sport').'</td>' : '')?>
+        <?=($show_pari ? '<td>'.$pari.'</td>' : '')?>
+        <?=($show_match_result ? '<td>'.$all_tips->field('match_result').'</td>' : '')?>
         <td class="mise2">
             <div class="mise <?=Formatter::getMiseColorClass($all_tips->field('mise'))?>"><?=$all_tips->field('mise')?></div>
         </td>
-        <?=$all_tipser_str?>
+        <?=($show_user ? "<td><a href=\"/tipser-stats/?id=".$all_tips->field('author.ID')."\">".$all_tips->field('author.user_nicename')."</a></td>" : '')?>
         <td class="couleurcote"><?=$all_tips->display('cote')?></td>
+        <?=($show_profit ? '<th class="gain2">'.Calculator::Gain($all_tips->field('tips_result'),$all_tips->field('mise'),$all_tips->display('cote')).'</th>' : '')?>
     </tr>
 <?php } else { ?>
     <tr>
-        <td class="date2"><?=date_i18n("j/m", strtotime($all_tips->field('date')))?></td>
-        <td class="resultat2"><i class="fa <?=Formatter::resultat2str($all_tips->field('tips_result'))?>" aria-hidden="true"></i></td>
+        <td class="date2">
+            <?=date_i18n("j/m", strtotime($all_tips->field('date')))?>
+        </td>
+        <td class="resultat2">
+            <i class="fa <?=Formatter::resultat2str($all_tips->field('tips_result'))?>" aria-hidden="true"></i>
+        </td>
         <td class="match2">
             <strong>
                 <a class="simplelink" href="/vip/">Rejoignez les VIPS pour accéder à ce pronostique</a>
             </strong>
         </td>
+        <?=($show_sport ? '<td class="sport2">'.$all_tips->display('sport').'</td>' : '')?>
         <?=($show_pari ? '<td class=""><i class="fa fa-lock" aria-hidden="true"></i></td>' : '')?>
-        <?=$val_sport?>
+        <?=($show_match_result ? '<td class=""><i class="fa fa-lock" aria-hidden="true"></i></td>' : '')?>
         <td class="mise2">
             <div class="mise <?=Formatter::getMiseColorClass($all_tips->field('mise'))?>"><?=$all_tips->field('mise')?></div>
         </td>
-        <?=$all_tipser_str?>
+        <?=($show_user ? "<td><a href=\"/tipser-stats/?id=".$all_tips->field('author.ID')."\">".$all_tips->field('author.user_nicename')."</a></td>" : '')?>
         <td class="couleurcote"><i class="fa fa-lock" aria-hidden="true"></i></td>
+        <?=($show_profit ? '<th class="gain2">'.Calculator::Gain($all_tips->field('tips_result'),$all_tips->field('mise'),$all_tips->display('cote')).'</th>' : '')?>
     </tr>
-
 <?php } } ?>
 </table>
 <?php
