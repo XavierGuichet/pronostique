@@ -42,8 +42,7 @@ class TipsterLastTips_Widget extends WP_Widget {
 
         // TODO: This is a duplicate similar to user perf used on user bilan
         $params = array(
-            'offset' => $offset,
-            'orderby' => 'date '.$sort_order,
+            'orderby' => 'date DESC',
             'where' => '1 ',
         );
 
@@ -59,10 +58,13 @@ class TipsterLastTips_Widget extends WP_Widget {
 
         $tips = pods('pronostique')->find($params);
 
+        $isUserAdherent = UsersDAO::isUserInGroup(get_current_user_id(), UsersDAO::GROUP_ADHERENTS);
+
         $tpl_params = array(
                             'before_widget' => $args['before_widget'],
                             'widget_title' => $widget_title,
                             'tips' => $tips,
+                            'isUserAdherent' => $isUserAdherent,
                             'after_widget' => $args['after_widget'] );
 
         echo $this->templater->display('tipster-last-tips', $tpl_params);
