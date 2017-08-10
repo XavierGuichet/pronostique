@@ -576,7 +576,7 @@ class Pronostique_Public
             )
             );
 
-        $entete = '<tr><th>&nbsp;</th> <th>Pseudo</th> <th>Profit</th></tr>';
+        $entetes = '<tr><th>&nbsp;</th> <th>Pseudo</th> <th>Profit</th></tr>';
 
         $tpl_params = array('titre' => $titre,
                             'entetes' => $entetes,
