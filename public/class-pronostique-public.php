@@ -530,7 +530,7 @@ class Pronostique_Public
 
         $gain_month_res = pods('pronostique')->find(array(
                             'select' => $gain_sql,
-                            'where' => 'tips_result > 0 AND is_expert = 0 AND actif = 1 AND MONTH(date) like MONTH(NOW()) AND YEAR(date) like YEAR(NOW())',
+                            'where' => 'tips_result > 0 AND is_expert = 0 AND MONTH(date) like MONTH(NOW()) AND YEAR(date) like YEAR(NOW())',
         ));
         $gain_global_res = pods('pronostique')->find(array(
                             'select' => $gain_sql,
@@ -564,7 +564,7 @@ class Pronostique_Public
     //   + Titre 'bien que je trouve pas ca top'
     public function getListTop($titre = 'Top tipsters du mois', $of_the_month = true, $max = 10)
     {
-        $cond_month = $of_the_month == 'true' ? ' AND actif = 1 AND MONTH(date) = 3 AND YEAR(date) = 2014' : '';
+        $cond_month = $of_the_month == 'true' ? ' AND MONTH(date) = 3 AND YEAR(date) = 2014' : '';
 
         $pronos = pods('pronostique')->find(
             array(
