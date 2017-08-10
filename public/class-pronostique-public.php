@@ -445,7 +445,7 @@ class Pronostique_Public
             $best_hotstreak[] = $hotStreaks_by_uid[$uid];
         }
 
-        $entete = '<tr><th>&nbsp;</th> <th>Pseudo</th> <th>Série</th></tr>';
+        $entetes = '<tr><th>&nbsp;</th> <th>Pseudo</th> <th>Série</th></tr>';
 
         $tpl_params = array('titre' => 'Série en cours',
                             'entetes' => $entetes,
