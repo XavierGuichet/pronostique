@@ -58,7 +58,7 @@ while ( $all_tips->fetch() ) {
         <?=($show_profit ? '<th class="gain2">'.Calculator::Gain($all_tips->field('tips_result'),$all_tips->field('mise'),$all_tips->display('cote')).'</th>' : '')?>
     </tr>
 <?php } else { ?>
-    <tr>
+    <tr class="hidden_tips">
         <td class="date2">
             <?=date_i18n("j/m", strtotime($all_tips->field('date')))?>
         </td>
@@ -126,7 +126,7 @@ while ( $more_tips->fetch() ) {
         <?=($show_profit ? '<th class="gain2">'.Calculator::Gain($more_tips->field('tips_result'),$more_tips->field('mise'),$more_tips->display('cote')).'</th>' : '')?>
     </tr>
 <?php } else { ?>
-    <tr>
+    <tr class="hidden_tips">
         <td class="date2">
             <?=date_i18n("j/m", strtotime($more_tips->field('date')))?>
         </td>
