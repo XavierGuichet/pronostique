@@ -605,12 +605,12 @@ class Pronostique_Public
     //   + Titre 'bien que je trouve pas ca top'
     public function getListTop($titre = 'Top tipsters du mois', $of_the_month = true, $max = 10)
     {
-        $cond_month = $of_the_month == 'true' ? ' AND MONTH(date) = 3 AND YEAR(date) = 2014' : '';
+        $cond_month = $of_the_month == 'true' ? ' AND MONTH(date) = MONTH(NOW()) AND YEAR(date) = YEAR(NOW())' : '';
 
         $pronos = pods('pronostique')->find(
             array(
                 'select' => 'ROUND(SUM( IF(tips_result = 1, (cote-1)*mise, IF(tips_result = 2, - mise, IF(tips_result = 3, 0, 0))) ), 2) AS Gain, t.*',
-                'where' => 'tips_result > 0'.$cond_month,
+                'where' => 'tips_result > 0 AND is_expert = 0 '.$cond_month,
                 'limit' => $max,
                 'orderby' => 'Gain Desc',
                 'groupby' => 'author.id',
