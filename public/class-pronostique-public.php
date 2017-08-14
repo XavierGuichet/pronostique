@@ -498,6 +498,28 @@ class Pronostique_Public
                                      $params['limit'],
                                      'DESC');
 
+        // when with_result = 0, we can add X tips with result after.
+        $more_tips = false;
+        if ($params['with_result'] == 0 && $params['addxwithresult'] != null) {
+            if ($params['addxwithresult'] == "odd") {
+                $params['addxwithresult'] = intval($tips->total()) % 2;
+            }
+            if($params['addxwithresult'] > 0) {
+            $more_tips = $this->getPronostics($params['user_id'],
+                                         $params['sport'],
+                                         $params['excludesport'],
+                                         $params['month'],
+                                         $params['hidetips'],
+                                         $params['hideexpert'],
+                                         $params['hidevip'],
+                                         $params['viponly'],
+                                         1,
+                                         0,
+                                         $params['addxwithresult'],
+                                         'DESC');
+             }
+        }
+
         $show_sport = ($params['sport'] === null && is_front_page());
         $show_user = ($params['user_id'] === null);
         $show_pari = !(is_front_page());
@@ -509,7 +531,9 @@ class Pronostique_Public
 
         $template = $params['display'].'-pronostics';
 
-        return $this->templater->display($template, array('all_tips' => $tips,
+        return $this->templater->display($template, array(
+              'all_tips' => $tips,
+              'more_tips' => $more_tips,
               'show_sport' => $show_sport,
               'show_user' => $show_user,
               'show_pari' => $show_pari,
@@ -652,6 +676,7 @@ class Pronostique_Public
                             'hideexpert' => null,
                             'hidevip' => null,
                             'with_result' => null,
+                            'addxwithresult' => null,
                             'offset' => 0,
                             'limit' => 20,
                             'display' => 'list',
