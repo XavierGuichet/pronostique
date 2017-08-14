@@ -124,6 +124,19 @@ class Pronostique_Admin {
     	wp_die();
     }
 
+    public function display_pronostique_ui() {
+        $object = pods( 'pronostique' );
+        $ui = array(
+            'pod' => $object,
+            'orderby' => 'ID desc',
+            'search_across_picks' => true,
+            'filters' => array('bookmaker','tips_result','is_expert','is_vip'),
+            'fields' => array('manage' => array('name','pari','bookmaker','date','tips_result','match_result','is_expert','is_vip','author','id'))
+        );
+
+        pods_ui( $ui );
+    }
+
     public function printPronosticsQuickEditAdminPage() {
         $tipsWithoutResult = pods('pronostique')->find(
                             array('limit' => 0,

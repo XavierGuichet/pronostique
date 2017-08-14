@@ -165,6 +165,8 @@ class Pronostique {
         $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_option_page');
         $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_quick_edit_pronostique');
         $this->loader->add_action( 'wp_ajax_quick_edit_pronostique', $plugin_admin, 'ajax_quick_edit_pronostique');
+        $this->loader->add_action( 'wp_ajax_quick_edit_pronostique', $plugin_admin, 'ajax_quick_edit_pronostique');
+        $this->loader->add_action( 'pods_admin_ui_custom_pronostique', $plugin_admin, 'display_pronostique_ui');
 	}
 
 	/**
