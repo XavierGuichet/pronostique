@@ -72,7 +72,7 @@ while ( $all_tips->fetch() ) {
         </td>
         <?=($show_sport ? '<td class="sport2">'.$all_tips->display('sport').'</td>' : '')?>
         <?=($show_pari ? '<td class=""><i class="fa fa-lock" aria-hidden="true"></i></td>' : '')?>
-        <?=($show_match_result ? '<td class=""><i class="fa fa-lock" aria-hidden="true"></i></td>' : '')?>
+        <?=($show_match_result ? '<td class=""></td>' : '')?>
         <td class="mise2">
             <div class="mise <?=Formatter::getMiseColorClass($all_tips->field('mise'))?>"><?=$all_tips->field('mise')?></div>
         </td>
@@ -140,7 +140,7 @@ while ( $more_tips->fetch() ) {
         </td>
         <?=($show_sport ? '<td class="sport2">'.$more_tips->display('sport').'</td>' : '')?>
         <?=($show_pari ? '<td class=""><i class="fa fa-lock" aria-hidden="true"></i></td>' : '')?>
-        <?=($show_match_result ? '<td class=""><i class="fa fa-lock" aria-hidden="true"></i></td>' : '')?>
+        <?=($show_match_result ? '<td class=""></td>' : '')?>
         <td class="mise2">
             <div class="mise <?=Formatter::getMiseColorClass($more_tips->field('mise'))?>"><?=$more_tips->field('mise')?></div>
         </td>
