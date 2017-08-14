@@ -551,9 +551,6 @@ class Pronostique_Public
                             'gain_month' => $gain_month,
                             'gain_global' => $gain_global, ));
     }
-    //######################
-    //   RLY USED
-    //######################
     // TODO : Le shortcode 'list tipster ...' à un nom pourri.
     // Celui ci retourne des classements. Il devrait donc s'appeller classement.
     // Comme les tips std et expert sont maintenant regroupé. Il faudra ajouter un paramètre

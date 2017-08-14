@@ -4,9 +4,86 @@
  */
 
 /* HOME */
-.articletxt2 {
-    height: 88px;
+.articleleft {
+    float: left;
+    padding: 8px 0 0 8px;
+    width: 46%
 }
+
+.home_expert {
+    -moz-transition: all .3s ease-out 0;
+    background: none repeat scroll 0 0 #E9EDF0;
+    float: left;
+    margin-bottom: 8px;
+}
+.home_expert_row {
+    width: 100%;
+}
+.home_expert_column {
+    margin-left: 8px;
+    width: 46%;
+    margin-top: 2px;
+    margin-right: 6px
+}
+
+.home_expert_content {
+    color: #fff;
+    display: inline;
+    float: left;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 18px;
+    padding-bottom: 5px;
+    position: relative;
+    text-align: left;
+    width: 100%
+}
+
+.home_expert_title {
+    display: block;
+    float: left;
+    height: 42px;
+    width: 54%;
+    color: #000;
+}
+
+a:hover .home_expert_title {
+    text-decoration: underline;
+}
+
+.home_expert_content img {
+    border: 0 none;
+    display: inline;
+    float: left;
+    height: 79px;
+    margin-right: 5px;
+    padding-left: 0;
+    width: 37.7%;
+    border-image: initial
+}
+.home_expert_excerpt {
+    height: 88px;
+    color: #333;
+    display: block;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 14px;
+    margin-top: 38px;
+    padding: 4px 4px 0 8px;
+    text-align: left;
+}
+
+.home_expert_author {
+    background: none repeat scroll 0 0 #D3D6D8;
+    border-bottom: 1px solid #DDD;
+    color: #000;
+    float: left;
+    font-size: 12px;
+    padding-left: 5px;
+    width: 98.2%;
+    font-weight: normal;
+}
+
 .home_tips_container {
     clear: both;
 }
