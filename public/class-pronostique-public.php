@@ -152,6 +152,17 @@ class Pronostique_Public
         trigger_error('Deprecated shortcode used : '.$tag, E_USER_NOTICE);
     }
 
+
+    public function validate_form($pieces, $is_new_item) {
+        if (isset($pieces[ 'fields' ][ 'analyse' ][ 'value' ])) {
+            $stripped_analyse = strip_tags($pieces[ 'fields' ][ 'analyse' ][ 'value' ]);
+            if(strlen($stripped_analyse) < 500) {
+                $message = "Votre analyse doit faire au moins 500 caractères. Elle fait actuellement : ".strlen($stripped_analyse);
+                return pods_error($message);
+            }
+        }
+        return $pieces;
+    }
     // pods is localized for number type, So it accept either comma or dot.
     // we've setted pods to use dot, and if user use a comma we transform it in dot
     public function fix_cote_comma_float($pieces, $is_new_item) {
