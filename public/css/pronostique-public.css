@@ -237,3 +237,34 @@ BILAN EXPERT
 .stats_expert_container .stat_expert {
     flex: 1 1 auto;
 }
+
+/*
+################
+Prono post
+################
+*/
+#content .prono-post, #content .page {
+	padding-bottom: 35px;
+}
+#content .prono-post {
+}
+.single #content .prono-post {
+	padding-bottom: 25px;
+}
+.prono-post .entry-title {
+	font-size: 26px;
+	line-height: 32px;
+}
+.prono-post .entry-title {
+    font-size: 20px;
+}
+.prono-post .entry-title a {
+	color: #444444;
+	transition: all 0.3s ease 0s
+}
+.prono-post .entry-title a:hover {
+	color: #668da3;
+}
+.prono-post .entry-content {
+	margin-bottom: 10px;
+}
