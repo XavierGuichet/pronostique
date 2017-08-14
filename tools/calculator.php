@@ -6,7 +6,7 @@ class Calculator
     {
         switch ($resultat) {
             case 1:
-                return ($cote - 1) * $mise;
+                return ((float) $cote - 1) * (int) $mise;
             case 2:
                 return -$mise;
             case 3:

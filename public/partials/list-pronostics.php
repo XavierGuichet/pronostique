@@ -78,7 +78,7 @@ while ( $all_tips->fetch() ) {
         </td>
         <?=($show_user ? "<td><a href=\"/tipser-stats/?id=".$all_tips->field('author.ID')."\">".$all_tips->field('author.user_nicename')."</a></td>" : '')?>
         <td class="couleurcote"><i class="fa fa-lock" aria-hidden="true"></i></td>
-        <?=($show_profit ? '<th class="gain2">'.Calculator::Gain($all_tips->field('tips_result'),$all_tips->field('mise'),$all_tips->display('cote')).'</th>' : '')?>
+        <?=($show_profit ? '<th class="gain2">'.Calculator::Gain($all_tips->field('tips_result'),$all_tips->field('mise'),$all_tips->field('cote')).'</th>' : '')?>
     </tr>
 <?php } } ?>
 <?php
@@ -146,7 +146,7 @@ while ( $more_tips->fetch() ) {
         </td>
         <?=($show_user ? "<td><a href=\"/tipser-stats/?id=".$more_tips->field('author.ID')."\">".$more_tips->field('author.user_nicename')."</a></td>" : '')?>
         <td class="couleurcote"><i class="fa fa-lock" aria-hidden="true"></i></td>
-        <?=($show_profit ? '<th class="gain2">'.Calculator::Gain($more_tips->field('tips_result'),$more_tips->field('mise'),$more_tips->display('cote')).'</th>' : '')?>
+        <?=($show_profit ? '<th class="gain2">'.Calculator::Gain($more_tips->field('tips_result'),$more_tips->field('mise'),$more_tips->field('cote')).'</th>' : '')?>
     </tr>
 <?php } } } ?>
 </table>
