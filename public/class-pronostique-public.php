@@ -152,6 +152,15 @@ class Pronostique_Public
         trigger_error('Deprecated shortcode used : '.$tag, E_USER_NOTICE);
     }
 
+    // pods is localized for number type, So it accept either comma or dot.
+    // we've setted pods to use dot, and if user use a comma we transform it in dot
+    public function fix_cote_comma_float($pieces, $is_new_item) {
+        if (isset($pieces[ 'fields' ][ 'cote' ][ 'value' ])) {
+            $cote = $pieces[ 'fields' ][ 'cote' ][ 'value' ];
+            $pieces[ 'fields' ][ 'cote' ][ 'value' ] = str_replace(',', '.',$cote);
+        }
+        return $pieces;
+    }
     /*
      *  Create a prono-post if none are associated
      *  Set category of prono-post and sport taxonomy
