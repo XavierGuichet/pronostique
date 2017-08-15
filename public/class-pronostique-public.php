@@ -124,6 +124,7 @@ class Pronostique_Public
         add_shortcode('liste-experts',   array($this, 'sc_displayListExperts'));
 
         add_shortcode('liste-paris', array($this, 'sc_displayListParis'));
+        add_shortcode('liste-paris-editable', array($this, 'sc_displayListParisEditable'));
 
         add_shortcode('liste-top-tipsers', array($this, 'sc_getListTop'));
         add_shortcode('classement-hotstreak', array($this, 'sc_getHotStreakRanking'));
@@ -361,7 +362,7 @@ class Pronostique_Public
             $est_tipster = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->user2group_rs JOIN $wpdb->groups_rs ON $wpdb->groups_id_col = $wpdb->user2group_gid_col WHERE $wpdb->groups_name_col LIKE 'Tipseurs' AND $wpdb->user2group_uid_col = '$user_id'");
 
             if ($est_tipster) {
-                $links[] = array('title' => 'Mes pronostics',
+                $links[] = array('title' => 'Mes statistiques',
                                  'href' => '/tipser-stats/?id='.$user_id, );
                 $links[] = array('title' => 'Ajouter un pronostic',
                                  'href' => '/formulaire-pronostics', );
@@ -372,6 +373,8 @@ class Pronostique_Public
             if ($est_expert) {
                 $links[] = array('title' => 'Ajouter un prono. expert',
                                  'href' => '/formulaire-experts', );
+                $links[] = array('title' => 'Corriger un pronostique',
+                                 'href' => '/my-pronostics', );
             }
         }
 
@@ -504,7 +507,6 @@ class Pronostique_Public
     public function sc_displayListParis($atts = [], $content = null, $tag = '')
     {
         $params = $this->prepareParams($atts, $tag);
-
         $tips = $this->getPronostics($params['user_id'],
                                      $params['sport'],
                                      $params['excludesport'],
@@ -516,6 +518,7 @@ class Pronostique_Public
                                      $params['with_result'],
                                      $params['offset'],
                                      $params['limit'],
+                                     $params['onlycomming'],
                                      'DESC');
 
         // when with_result = 0, we can add X tips with result after.
@@ -536,6 +539,7 @@ class Pronostique_Public
                                          1,
                                          0,
                                          $params['addxwithresult'],
+                                         $params['onlycomming'],
                                          'DESC');
              }
         }
@@ -565,6 +569,28 @@ class Pronostique_Public
           ));
     }
 
+    public function sc_displayListParisEditable($atts = [], $content = null, $tag = '') {
+        $params = $this->prepareParams($atts, $tag);
+        $tips = $this->getPronostics($params['user_id'],
+                                     $params['sport'],
+                                     $params['excludesport'],
+                                     $params['month'],
+                                     1,
+                                     $params['hideexpert'],
+                                     1,
+                                     $params['viponly'],
+                                     $params['with_result'],
+                                     $params['offset'],
+                                     $params['limit'],
+                                     true,
+                                     'DESC');
+
+        // while($tips->fetch() ) {
+        //     var_dump($tips->field('name'));
+        // }
+
+        return $this->templater->display('liste-paris-editable', array('tips' => $tips));
+    }
     public function sc_displayGlobalPerf($atts = [], $content = null, $tag = '')
     {
         $params = $this->prepareParams($atts, $tag);
@@ -627,7 +653,7 @@ class Pronostique_Public
         return $this->templater->display('classements', $tpl_params);
     }
 
-    public function getPronostics($user_id = null, $sport = null, $exclude_sport = null, $month = null, $hidetips = null, $hideexpert = null, $hidevip = null, $viponly = null, $with_result = null, $offset = 0, $limit = null, $sort_order = 'ASC')
+    public function getPronostics($user_id = null, $sport = null, $exclude_sport = null, $month = null, $hidetips = null, $hideexpert = null, $hidevip = null, $viponly = null, $with_result = null, $offset = 0, $limit = null, $onlycomming = null, $sort_order = 'ASC')
     {
         $params = array(
             'offset' => $offset,
@@ -679,6 +705,10 @@ class Pronostique_Public
             $params['limit'] = $limit;
         }
 
+        if ($onlycomming != null) {
+            $params['where'] .= ' AND date > NOW()';
+        }
+
         $all_tips = pods('pronostique')->find($params);
 
         return $all_tips;
@@ -699,6 +729,7 @@ class Pronostique_Public
                             'addxwithresult' => null,
                             'offset' => 0,
                             'limit' => 20,
+                            'onlycomming' => null,
                             'display' => 'list',
                             'direction' => 'column',
                             'use_poolbox' => null,
