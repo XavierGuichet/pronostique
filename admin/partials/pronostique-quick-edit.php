@@ -2,12 +2,14 @@
 <div class="prono-quick-edit-container">
 <?php
 while ($tips->fetch()) {
+    $modified_after_match = (strtotime($tips->field('date')) - strtotime($tips->field('modified')) < 0);
     ?>
     <div class="prono-quick-edit-col">
     <div class="prono-quick-edit-item">
         <div class="prono-quick-edit-header">
-            <h2><?=$tips->field('name')?></h2>
-            <p class="date"><?=date_i18n("d F Y", strtotime($tips->field('date')))?></p>
+            <h2 class="<?=($modified_after_match ? 'warning' : '')?>"><?=$tips->field('name')?></h2>
+            <p class="date">Match : <?=date_i18n("d F Y H:i", strtotime($tips->field('date')))?></p>
+            <p class="date">Modifié : <?=date_i18n("d F Y H:i", strtotime($tips->field('modified')))?></p>
             <p class="sport"><?=$tips->field('sport.name')?></p>
             <p class="tipster"><?=$tips->field('author.user_nicename')?></p>
         </div>

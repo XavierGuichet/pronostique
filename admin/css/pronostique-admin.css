@@ -38,11 +38,16 @@ PRONOSTIQUE QUICK EDIT
 .prono-quick-edit-header h2 {
     margin: 0 0 0.5rem;
     text-align: center;
+    color: green;
+}
+.prono-quick-edit-header h2.warning {
+    color: red;
 }
 .prono-quick-edit-header .date {
-    text-align: center;
+    text-align: left;
     margin-top: 0;
     font-weight: bold;
+    margin-bottom: 0;
 }
 .prono-quick-edit-header .sport {
     float: left;
