@@ -155,11 +155,14 @@ class Pronostique_Public
 
 
     public function validate_form($pieces, $is_new_item) {
-        if (isset($pieces[ 'fields' ][ 'analyse' ][ 'value' ])) {
-            $stripped_analyse = strip_tags($pieces[ 'fields' ][ 'analyse' ][ 'value' ]);
-            if(strlen($stripped_analyse) < 500) {
-                $message = "Votre analyse doit faire au moins 500 caractères. Elle fait actuellement : ".strlen($stripped_analyse);
-                return pods_error($message);
+        //Si ce n'est pas la migration
+        if(!isset($_POST['migrate_expert_tips']) && !isset($_POST['migrate_std_tips'])) {
+            if (isset($pieces[ 'fields' ][ 'analyse' ][ 'value' ])) {
+                $stripped_analyse = strip_tags($pieces[ 'fields' ][ 'analyse' ][ 'value' ]);
+                if(strlen($stripped_analyse) < 500) {
+                    $message = "Votre analyse doit faire au moins 500 caractères. Elle fait actuellement : ".strlen($stripped_analyse);
+                    return pods_error($message);
+                }
             }
         }
         return $pieces;
@@ -180,20 +183,22 @@ class Pronostique_Public
      */
     public function create_linked_prono_post($pieces, $is_new_item, $id) {
         $post_id = false;
+        $prono = pods('pronostique',$id);
         if (isset($pieces[ 'fields' ][ 'post' ][ 'value' ])) {
             $post_id = (int) $pieces[ 'fields' ][ 'post' ][ 'value' ];
         }
+        if ($prono->field('post')) {
+            $post_id = $prono->field('post.ID');
+        }
         $category = array();
+        // when pronostique doesn't have a prono-post linked
+        // create one and associate it
         if (!$post_id) {
             if((int) $pieces[ 'fields' ][ 'is_vip' ][ 'value' ] == 1) {
-                // TODO: get this by an admin param
-                // $category[] = $vip_category->term_id;
-                // $vip_category = get_term_by('slug', 'vip', 'category');
-                // if ($vip_category->term_id) {
-                // }
+                // TODO: if needed to create vip category
             }
             elseif((int) $pieces[ 'fields' ][ 'is_expert' ][ 'value' ] == 1) {
-                $category[] = 6; // TODO: get this by an admin param
+                $category[] = 6; // TODO: could be get by an admin param
                 // $expert_category = get_term_by('slug', 'les-paris-de-nos-experts', 'category');
                 // if ($expert_category->term_id) {
                 //     $category[] = $expert_category->term_id;
@@ -214,9 +219,30 @@ class Pronostique_Public
             $post_id = wp_insert_post($new_post);
             wp_set_object_terms($post_id, intval($pieces[ 'fields' ][ 'sport' ][ 'value' ]), 'sport', false);
 
-            $prono = pods('pronostique',$id);
-            $prono->save(array('post' => $post_id));
 
+            $prono->save(array('post' => $post_id));
+        }
+        // synchronyse les analyse
+        $linked_post = get_post($post_id);
+        if (strlen($prono->field('analyse')) != strlen($linked_post->post_content)) {
+            wp_update_post( array( 'ID' => $post_id, 'post_content' => $prono->field('analyse') ) );
+        }
+        if ($prono->field('name') != $linked_post->post_title) {
+            wp_update_post( array( 'ID' => $post_id, 'post_title' => $prono->field('name') ) );
+        }
+    }
+
+    public function sync_analyse($pieces, $is_new_item, $post_id) {
+        $prono_id = $pieces[ 'fields' ][ 'pronostique' ][ 'value' ];
+        if($prono_id) {
+            $prono = pods('pronostique',$prono_id);
+            $linked_post = get_post($post_id);
+            if (strlen($prono->field('analyse')) != strlen($linked_post->post_content)) {
+                $prono->save( array( 'analyse' => $linked_post->post_content ));
+            }
+            if ($prono->field('name') != $linked_post->post_title) {
+                $prono->save( array( 'name' => $linked_post->post_title ));
+            }
         }
     }
 

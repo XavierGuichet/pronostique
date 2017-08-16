@@ -209,13 +209,13 @@ class Pronostique_Admin {
         }
         if (isset($_POST['migrate_std_tips'])) {
             check_admin_referer('pronostics-migrate-tips');
-            $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips." t WHERE tips_ID > ".$std_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,100");
+            $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips." t WHERE tips_ID > ".$std_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,10");
             $std_tips_last_imported_id = $this->migrate_tips($all_tips, 0);
             update_option( 'pronostique_migrate_last_id', $std_tips_last_imported_id );
         }
         if (isset($_POST['migrate_expert_tips'])) {
             check_admin_referer('pronostics-migrate-tips');
-            $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips_experts." t WHERE tips_ID > ".$expert_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,100");
+            $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips_experts." t WHERE tips_ID > ".$expert_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,1");
             $expert_tips_last_imported_id = $this->migrate_tips($all_tips, 1);
             update_option( 'pronostique_migrate_expert_last_id', $expert_tips_last_imported_id );
         }
@@ -239,6 +239,8 @@ class Pronostique_Admin {
     }
 
     private function migrate_tips($all_tips, $is_expert) {
+        // enleve le filtre de Role SCoper qui reset les custom taxonomy
+        remove_filter('save_post', array($GLOBALS['scoper_admin_filters'], 'custom_taxonomies_helper'), 5, 2);
         $pods_bookmaker = pods('bookmaker')->find();
         $bookmaker_ids = array();
         while ( $pods_bookmaker->fetch() ) {
@@ -250,7 +252,7 @@ class Pronostique_Admin {
         ) );
         $sport_ids = array();
         foreach($sport_taxonomy as $sport) {
-            $sport_ids[$sport->name] = $sport->term_id;
+            $sport_ids[$sport->name] = (int) $sport->term_id;
         }
 
         $last_id = 0;
@@ -287,13 +289,17 @@ class Pronostique_Admin {
             }
 
             $post_id = 0;
-            //duplicate post as a custom prono-post
-            // $old_post = get_post($tips->tips_post_id);
-            // $old_post->ID = '';
-            // $old_post->post_type = 'prono-post';
-            //
-            // $post_id = wp_insert_post($old_post);
-            // wp_set_object_terms( $post_id, $sport_id, 'sport' );
+            //duplicate post as a custom prono-post and put old post in trash
+            if ($tips->tips_post_id) {
+                $post_id = $tips->tips_post_id;
+
+                $bool = wp_update_post( array(  'ID' => $post_id,
+                                        'post_type' => 'prono-post',
+                                        'post_title' => $tips->tips_match,
+                                        'post_name' => sanitize_title($tips->tips_match), //reset slug
+                                        'post_status' => 'publish',
+                                        'tax_input' => array('sport' => $sport_id)) );
+            }
 
             $pods_data[] = array(
                 'name' => $tips->tips_match,

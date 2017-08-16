@@ -188,6 +188,7 @@ class Pronostique {
         $this->loader->add_action( 'save_post', $plugin_public, 'update_comments_meta' );
         $this->loader->add_filter( 'comments_open', $plugin_public, 'prono_comment_open', 10, 2 );
         $this->loader->add_action( 'pods_api_post_save_pod_item_pronostique', $plugin_public, 'create_linked_prono_post', 10, 3);
+        $this->loader->add_action( 'pods_api_post_save_pod_item_prono-post', $plugin_public, 'sync_analyse', 10, 3);
         $this->loader->add_filter( 'pods_api_pre_save_pod_item_pronostique', $plugin_public, 'fix_cote_comma_float', 10, 3);
         $this->loader->add_filter( 'pods_api_pre_save_pod_item_pronostique', $plugin_public, 'validate_form', 10, 3);
         $this->loader->add_filter( 'pre_get_posts', $plugin_public, 'add_custom_types' );
