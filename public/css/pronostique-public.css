@@ -25,6 +25,11 @@
     margin-top: 2px;
     margin-right: 6px
 }
+@media screen and (max-width: 767px) {
+    .home_expert_column {
+        width: 100%;
+    }
+}
 
 .home_expert_content {
     color: #fff;
@@ -43,8 +48,9 @@
     display: block;
     float: left;
     height: 42px;
-    width: 54%;
+    width: calc( 62% - 5px);
     color: #000;
+    padding-top:4px;
 }
 
 a:hover .home_expert_title {
@@ -58,7 +64,7 @@ a:hover .home_expert_title {
     height: 79px;
     margin-right: 5px;
     padding-left: 0;
-    width: 37.7%;
+    width: 38%;
     border-image: initial
 }
 .home_expert_excerpt {
