@@ -44,7 +44,7 @@ class TopVip_Widget extends WP_Widget {
         $user_results = pods('pronostique')->find(
             array(
                 'select' => 'ROUND(SUM( IF(tips_result = 1, (cote-1)*mise, IF(tips_result = 2, - mise, IF(tips_result = 3, 0, 0))) ), 2) AS Gain, SUM(mise) as Mise_total, t.*',
-                'where' => 'tips_result > 0 AND is_expert = 1',
+                'where' => 'tips_result > 0 AND is_vip = 1',
                 'orderby' => 'Gain Desc',
                 'groupby' => 'author.id',
             )
