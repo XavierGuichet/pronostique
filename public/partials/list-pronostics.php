@@ -32,7 +32,7 @@ while ( $all_tips->fetch() ) {
 
     if($isTipsVisible) {
 ?>
-    <tr>
+    <tr class="<?php echo ($all_tips->field('is_vip') ? 'tips_vip' : '')?>">
         <td class="date2">
             <?=date_i18n("j/m", strtotime($all_tips->field('date')))?>
         </td>
