@@ -98,6 +98,20 @@ class Pronostique_Admin {
         }
     }
 
+    public function add_tipster_confirmation() {
+        if (function_exists('add_menu_page')) {
+            add_menu_page(
+                __( 'Nouveaux Tipsters', 'textdomain' ),
+                __( 'New Tipster', 'textdomain' ),
+                'manage_options',
+                'add_tipster_confirmation',
+                array($this,'printTipsterConfirmationAdminPage'),
+                '',
+                5
+            );
+        }
+    }
+
     public function ajax_quick_edit_pronostique() {
         check_ajax_referer( 'pronostique-quick-edit', 'security' );
         $id = intval( $_POST['ID'] );
@@ -145,6 +159,32 @@ class Pronostique_Admin {
                             ));
 
         echo $this->templater->display('pronostique-quick-edit', array('tips' => $tipsWithoutResult));
+    }
+
+    public function printTipsterConfirmationAdminPage() {
+        // Pods has a bug that doesn't permit to search for meta_value analyse && pays
+        // https://github.com/pods-framework/pods/issues/3196
+        // so we filter user in the hard way
+        $search_params = array(
+            'select' => 't.*, analyse.meta_value as analyse, pays.meta_value as pays',
+            'limit' => "-1",
+            'where' => "analyse.meta_value IS NOT NULL");
+        $users = pods( 'user' )->find($search_params);
+        $user_to_confirm = array();
+        while( $users->fetch() ) {
+            if (!empty($users->field('analyse'))) {
+                if (!UsersDAO::isUserConfirmed($users->field('id'))) {
+                    $user_to_confirm[] = array(
+                        'id' => $users->field('id'),
+                        'name' => $users->field('name'),
+                        'analyse' => $users->field('analyse'),
+                        'pays' => $users->field('pays')
+                    );
+                }
+            }
+        }
+
+        echo $this->templater->display('tipsters-confirmation', array('users' => $user_to_confirm));
     }
 
     public function printPronosticsAdminPage()

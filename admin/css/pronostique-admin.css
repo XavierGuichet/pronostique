@@ -6,20 +6,20 @@
 /* #############
 PRONOSTIQUE QUICK EDIT
 ############# */
-.prono-quick-edit-container {
+.prono-quick-edit-container, .tipster-container {
     width: 100%;
     margin: 0 -10px;
 }
-.prono-quick-edit-col {
+.prono-quick-edit-col, .tipster-col {
     width: 20%;
     padding: 10px;
     box-sizing: border-box;
     float:left;
 }
-.prono-quick-edit-col:nth-child(5n):after {
+.prono-quick-edit-col:nth-child(5n):after, .tipster-col:nth-child(5n):after {
     clear: both;
 }
-.prono-quick-edit-item {
+.prono-quick-edit-item, .tipster-item {
     width: 100%;
     border: 1px solid darkgrey;
     border-radius: 10px 10px 0 0;
@@ -28,7 +28,7 @@ PRONOSTIQUE QUICK EDIT
     box-shadow: 0 1px 1px 0 rgba(0,0,0,.1);
     overflow: auto;
 }
-.prono-quick-edit-header {
+.prono-quick-edit-header, .tipster-header {
     background: #ddd;
     padding: 0.5rem 1rem;
     border-radius: 10px 10px 0 0;
@@ -57,16 +57,16 @@ PRONOSTIQUE QUICK EDIT
     float: right;
     margin: 0;
 }
-.prono-quick-edit-content {
+.prono-quick-edit-content, .tipster-content {
     position: relative;
     padding: 0.5rem 1.5em;
     max-height: 120px;
     overflow: hidden;
 }
-.prono-quick-edit-content.expanded {
+.prono-quick-edit-content.expanded, .tipster-content.expanded {
     max-height: none;
 }
-.prono-quick-edit-item .button-secondary {
+.prono-quick-edit-item .button-secondary, .tipster-item .button-secondary {
     float: right;
     margin-right: 0.5em;
 }
@@ -78,7 +78,8 @@ PRONOSTIQUE QUICK EDIT
     width: 100%;
     border: 1px solid darkgrey;
 }
-.prono-quick-edit-form {
+.prono-quick-edit-form, .tipster-action {
+    clear: both;
     padding: 0.5rem;
 }
 .prono-quick-edit-field label {

@@ -163,6 +163,7 @@ class Pronostique {
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
         $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_option_page');
+        $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_tipster_confirmation');
         $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_quick_edit_pronostique');
         $this->loader->add_action( 'wp_ajax_quick_edit_pronostique', $plugin_admin, 'ajax_quick_edit_pronostique');
         $this->loader->add_action( 'wp_ajax_quick_edit_pronostique', $plugin_admin, 'ajax_quick_edit_pronostique');

@@ -3,7 +3,7 @@
 
     $(document).ready(function() {
         $('.js-pqe-toggle-content').click(function() {
-            $(this).siblings('.prono-quick-edit-content').toggleClass('expanded');
+            $(this).siblings('.prono-quick-edit-content, .tipster-content').toggleClass('expanded');
         });
 
         var options = {

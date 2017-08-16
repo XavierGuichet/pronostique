@@ -4,7 +4,7 @@ class UsersDAO
 {
     const GROUP_RETIRED_EXPERTS = 'ExpertsSupprimes';
     const GROUP_EXPERTS = 'Experts';
-    const GROUP_TIPSERS = 'Tipsers';
+    const GROUP_TIPSERS = 'Tipsters';
     const GROUP_ADHERENTS = 'Adhérent';
 
     public static function getUserGroups($uid)
@@ -29,5 +29,15 @@ class UsersDAO
         $groups = self::getUserGroups($uid);
 
         return in_array($group_name, $groups);
+    }
+
+    // check if a user has already a group which permits him to post tips
+    public static function isUserConfirmed($uid)
+    {
+        $groups = self::getUserGroups($uid);
+
+        return (in_array(UsersDAO::GROUP_TIPSERS, $groups) ||
+                in_array(UsersDAO::GROUP_EXPERTS, $groups) ||
+                in_array(UsersDAO::GROUP_RETIRED_EXPERTS, $groups));
     }
 }
