@@ -264,6 +264,7 @@ class Pronostique_Public
                                      1, //avec resultat
                                      0, //offset
                                      50, //limit
+                                     null,
                                      'DESC');
 
         $graph_data = array();
@@ -610,10 +611,6 @@ class Pronostique_Public
                                      $params['limit'],
                                      true,
                                      'DESC');
-
-        // while($tips->fetch() ) {
-        //     var_dump($tips->field('name'));
-        // }
 
         return $this->templater->display('liste-paris-editable', array('tips' => $tips));
     }
