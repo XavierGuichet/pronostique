@@ -139,20 +139,7 @@ class Pronostique_Public
         add_shortcode('user-history-pagination', array($this, 'sc_displayUserHistoryPagination'));
 
         add_shortcode('global-perf', array($this, 'sc_displayGlobalPerf'));
-
-        add_shortcode('listParisTipsterParMois', array($this, 'deprecated'));
-        add_shortcode('liste-top-tipsers-mois', array($this, 'deprecated'));
-        add_shortcode('liste-prono-experts', array($this, 'deprecated'));
-        add_shortcode('liste-paris-experts',  array($this, 'deprecated'));
-        add_shortcode('liste-experts-actifs',   array($this, 'deprecated'));
-        add_shortcode('liste-experts-inactifs', array($this, 'deprecated'));
     }
-
-    public static function deprecated($atts = [], $content = null, $tag = '')
-    {
-        trigger_error('Deprecated shortcode used : '.$tag, E_USER_NOTICE);
-    }
-
 
     public function validate_form($pieces, $is_new_item) {
         //Si ce n'est pas la migration
@@ -268,7 +255,7 @@ class Pronostique_Public
                                      'DESC');
 
         $tips = array_reverse($tips->data());
-        
+
         $graph_data = array();
         $cumulated_profit = 0;
         foreach($tips as $tip) {
