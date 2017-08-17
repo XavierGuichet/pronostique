@@ -269,7 +269,7 @@ class Pronostique_Public
 
         $graph_data = array();
         $cumulated_profit = 0;
-        $data = array_reverse($people->data());
+        $data = array_reverse($tips->data());
         for ($i = 0; $i < count($data); ++$i) {
             $tip = $data[$i];
             $profit = 0;
