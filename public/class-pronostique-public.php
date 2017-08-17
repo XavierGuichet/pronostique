@@ -774,6 +774,7 @@ class Pronostique_Public
                             'direction' => 'column',
                             'columns' => null,
                             'use_poolbox' => false,
+                            'reverse_order' => false
                              ], $atts, $tag);
 
         return $params;

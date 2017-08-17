@@ -27,7 +27,7 @@ foreach($tips as $tips) {
             $comments = '<span class="tips-comm-number">'.$nb_comments.'</span>';
         }
     } else {
-        trigger_error('Prono without post', E_USER_ERROR);
+        trigger_error('Prono without post', E_USER_NOTICE);
     }
     $pari = mb_substr($tips->pari,0,12);
     if($use_poolbox && !empty($tips->code_poolbox)) {

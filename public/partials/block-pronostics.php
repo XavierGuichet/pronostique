@@ -6,7 +6,7 @@ foreach($tips as $tip) {
     if ($tip->post_id != 0) {
         $link = get_permalink($tip->post_id);
     } else {
-        trigger_error('Prono without post', E_USER_ERROR);
+        trigger_error('Prono without post', E_USER_NOTICE);
     }
     $analyse = strip_tags(stripslashes($tip->analyse));
     $resume = substr($analyse, 0, $MAX_ANALYSE).(strlen($analyse) > $MAX_ANALYSE ? '&hellip;' : '');
