@@ -81,7 +81,7 @@ class Pronostique_Public
         $open = ($post_type == 'page') ? true : $open;
         $open = ($comm_status == 'open') ? true : $open;
         $open = is_front_page() ? false : $open;
-        $open = ($post_id == 11557 || $post_id == 19093) ? false : $open;
+        $open = ($post_id == 11557 || $post_id == 19093 || 28900) ? false : $open;
 
         return $open;
     }
