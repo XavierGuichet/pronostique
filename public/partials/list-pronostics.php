@@ -23,7 +23,7 @@ while ( $all_tips->fetch() ) {
         $nb_comments = $comments_count ? $comments_count['approved'] : '';
         $link = get_permalink($all_tips->field('post.ID'));
     }
-    $pari = mb_substr($all_tips->field('pari'),0,6);
+    $pari = mb_substr($all_tips->field('pari'),0,12);
     if($use_poolbox && !empty($all_tips->field('code_poolbox'))) {
         $pari = $all_tips->field('code_poolbox');
     }
