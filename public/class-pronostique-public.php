@@ -267,16 +267,16 @@ class Pronostique_Public
                                      null,
                                      'DESC');
 
+        $tips = array_reverse($tips->data());
+        
         $graph_data = array();
         $cumulated_profit = 0;
-        $data = array_reverse($tips->data());
-        for ($i = 0; $i < count($data); ++$i) {
-            $tip = $data[$i];
+        foreach($tips as $tip) {
             $profit = 0;
-            if (intval($tip['tips_result']) == 1) {
-                $profit = $tip['mise'] * ($tip['cote'] - 1);
-            } elseif (intval($tip['tips_result']) == 2) {
-                $profit = -$tip['mise'];
+            if (intval($tip->tips_result) == 1) {
+                $profit = $tip->mise * ($tip->cote - 1);
+            } elseif (intval($tip->tips_result) == 2) {
+                $profit = -$tip->mise;
             }
             $cumulated_profit = floatval($cumulated_profit) + floatval($profit);
             $graph_data[] = $cumulated_profit;
