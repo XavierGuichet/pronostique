@@ -53,8 +53,6 @@ class Pronostique_Public
 
     /**
      * Register the stylesheets for the public-facing side of the site.
-     *
-     * @since    1.0.0
      */
     public function enqueue_styles()
     {
@@ -63,8 +61,6 @@ class Pronostique_Public
 
     /**
      * Register the JavaScript for the public-facing side of the site.
-     *
-     * @since    1.0.0
      */
     public function enqueue_scripts()
     {
@@ -531,11 +527,18 @@ class Pronostique_Public
                                      $params['onlycomming'],
                                      'DESC');
 
+        if($tips->total()) {
+            $tips = $tips->data();
+        }
+        else {
+            $tips = array();
+        }
+
         // when with_result = 0, we can add X tips with result after.
         $more_tips = false;
         if ($params['with_result'] == 0 && $params['addxwithresult'] != null) {
             if ($params['addxwithresult'] == "odd") {
-                $params['addxwithresult'] = intval($tips->total()) % 2;
+                $params['addxwithresult'] = count($tips) % 2;
             }
             if($params['addxwithresult'] > 0) {
             $more_tips = $this->getPronostics($params['user_id'],
@@ -551,29 +554,58 @@ class Pronostique_Public
                                          $params['addxwithresult'],
                                          $params['onlycomming'],
                                          'DESC');
+
+                if($more_tips->total()) {
+                    $more_tips = $more_tips->data();
+                }
+                else {
+                    $more_tips = array();
+                }
+                $tips = array_merge($tips, $more_tips);
+                usort($tips, function($a,$b) {
+                    return $a->date > $b->date;
+                });
              }
         }
+        if($params['reverse_order']) {
+            rsort($tips);
+        }
 
-        $show_sport = ($params['sport'] === null && is_front_page());
-        $show_user = ($params['user_id'] === null);
-        $show_pari = !(is_front_page());
-        $show_match_result = !(is_front_page());
-        $show_profit = !(is_front_page());
-        $use_poolbox = ($params['use_poolbox'] !== null);
+
+        $display_columns = array(
+                        'date' => true,
+                        'icon' => true,
+                        'match' => true,
+                        'sport' => true,
+                        'pari' => true,
+                        'resultat' => true,
+                        'mise' => true,
+                        'tipster' => true,
+                        'cote' => true,
+                        'profit' => true
+                        );
+
+        if($params['display'] == 'list' && $params['columns'] != null) {
+            $columns_list_request = explode(',',$params['columns']);
+            $columns_list_request = array_map('trim', $columns_list_request);
+            array_walk(
+                    $display_columns,
+                    function(&$columns_value, $columns_name, $columns_list_request) {
+                        $columns_value = in_array($columns_name,$columns_list_request);
+                    },
+                    $columns_list_request
+                );
+        }
 
         $isUserAdherent = UsersDAO::isUserInGroup(get_current_user_id(), UsersDAO::GROUP_ADHERENTS);
 
         $template = $params['display'].'-pronostics';
 
         return $this->templater->display($template, array(
-              'all_tips' => $tips,
+              'tips' => $tips,
               'more_tips' => $more_tips,
-              'show_sport' => $show_sport,
-              'show_user' => $show_user,
-              'show_pari' => $show_pari,
-              'show_match_result' => $show_match_result,
-              'show_profit' => $show_profit,
-              'use_poolbox' => $use_poolbox,
+              'display_columns' => $display_columns,
+              'use_poolbox' => $params['use_poolbox'],
               'isUserAdherent' => $isUserAdherent,
               'direction' => $params['direction'],
           ));
@@ -662,6 +694,7 @@ class Pronostique_Public
     public function getPronostics($user_id = null, $sport = null, $exclude_sport = null, $month = null, $hidetips = null, $hideexpert = null, $hidevip = null, $viponly = null, $with_result = null, $offset = 0, $limit = null, $onlycomming = null, $sort_order = 'ASC')
     {
         $params = array(
+            'select' => ' `t`.*, post.ID as post_id, author.id as tipster_id, sport.name as sport, author.user_nicename as tipster_nicename, miniature.id as image_id',
             'offset' => $offset,
             'orderby' => 'date '.$sort_order,
             'where' => '1 ',
@@ -715,6 +748,7 @@ class Pronostique_Public
             $params['where'] .= ' AND date > NOW()';
         }
 
+
         $all_tips = pods('pronostique')->find($params);
 
         return $all_tips;
@@ -738,7 +772,8 @@ class Pronostique_Public
                             'onlycomming' => null,
                             'display' => 'list',
                             'direction' => 'column',
-                            'use_poolbox' => null,
+                            'columns' => null,
+                            'use_poolbox' => false,
                              ], $atts, $tag);
 
         return $params;
