@@ -425,7 +425,7 @@ class Pronostique_Public
                 }
                 $tips = array_merge($tips, $more_tips);
                 usort($tips, function($a,$b) {
-                    return $a->date > $b->date;
+                    return strtotime($a->date) > strtotime($b->date);
                 });
              }
         }
