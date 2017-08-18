@@ -617,14 +617,14 @@ class Pronostique_Public
                                      $params['sport'],
                                      $params['excludesport'],
                                      $params['month'],
-                                     1,
-                                     $params['hideexpert'],
-                                     1,
+                                     null,
+                                     null,
+                                     null,
                                      $params['viponly'],
                                      $params['with_result'],
                                      $params['offset'],
                                      $params['limit'],
-                                     true,
+                                     null,
                                      'DESC');
 
         return $this->templater->display('liste-paris-editable', array('tips' => $tips));
