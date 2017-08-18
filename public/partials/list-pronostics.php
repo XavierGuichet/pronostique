@@ -42,11 +42,11 @@ foreach($tips as $tips) {
     if($isTipsVisible) {
 ?>
 <tr class="<?php echo ($tips->is_vip ? 'tips_vip' : '')?>">
-    <?=($display_columns['date'] ? '<td class="date2">'.date_i18n("j/m", strtotime($tips->date)).'</td>' : '')?>
+    <?=($display_columns['date'] ? '<td class="date2" title="'.date_i18n("j/m/Y h:i", strtotime($tips->date)).'">'.date_i18n("j/m", strtotime($tips->date)).'</td>' : '')?>
     <?=($display_columns['icon'] ? '<td class="resultat2"> <i class="fa '.Formatter::resultat2str($tips->tips_result).'" aria-hidden="true"></i> </td>' : '')?>
     <?=($display_columns['match'] ? ' <td class="match2"> <strong> <a class="simplelink" href="'.$link.'">'.stripslashes($tips->name).'</a> '.$comments.'</strong> </td>' : '')?>
     <?=($display_columns['sport'] ? '<td class="sport2">'.$tips->sport.'</td>' : '')?>
-    <?=($display_columns['pari'] ? '<td>'.$pari.'</td>' : '')?>
+    <?=($display_columns['pari'] ? '<td title="'.$tips->pari.'">'.$pari.'</td>' : '')?>
     <?=($display_columns['resultat'] ? '<td>'.$tips->match_result.'</td>' : '')?>
     <?=($display_columns['mise'] ? '<td class="mise2"><div class="mise '.Formatter::getMiseColorClass($tips->mise).'">'.$tips->mise.'</div></td>' : '')?>
     <?=($display_columns['tipster'] ? '<td><a href="/tipser-stats/?id='.$tips->tipster_id.'">'.$tips->tipster_nicename.'</a></td>' : '')?>
