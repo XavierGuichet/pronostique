@@ -9,14 +9,6 @@ if ( $results !== null ) {
 ?>
 <div class="wrap">
     <h1>Gestion des pronostics</h1><br/>
-    <h2>RAZ des pronostics</h2>
-    <p><strong>Attention, la remise à zéro des classements est irréversible.</strong></p>
-    <form method="post" action="<?=$formaction?>">
-        <?=$formnonce_raz?>
-        <div class="submit">
-            <input type="submit" name="RAZ_tipseurs" value="<?=$formsubmit_raz?>" />
-        </div>
-    </form>
 
     <h2>Migration des pronostique (tipseur) DB-Toolkit vers Pods</h2>
     <p>Reste à migrer : <b><?=$count_std_tips_to_migrate?></b> tips</p>

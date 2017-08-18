@@ -201,15 +201,9 @@ class Pronostique_Admin {
         $std_tips_last_imported_id = get_option( 'pronostique_migrate_last_id', 0);
         $expert_tips_last_imported_id = get_option( 'pronostique_migrate_expert_last_id', 0);
 
-        if (isset($_POST['RAZ_tipseurs'])) {
-            //wp_nonce check
-            check_admin_referer('pronostics-raz-tipseurs');
-            $date_actu = strftime('%Y-%m-');
-            // $results = $wpdb->query("UPDATE $table_name SET tips_actif = 0 WHERE tips_date LIKE '$date_actu%'");
-        }
         if (isset($_POST['migrate_std_tips'])) {
             check_admin_referer('pronostics-migrate-tips');
-            $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips." t WHERE tips_ID > ".$std_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,10");
+            $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips." t WHERE tips_ID > ".$std_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,50");
             $std_tips_last_imported_id = $this->migrate_tips($all_tips, 0);
             update_option( 'pronostique_migrate_last_id', $std_tips_last_imported_id );
         }
@@ -224,8 +218,6 @@ class Pronostique_Admin {
         $count_expert_tips_to_migrate = $wpdb->get_var("SELECT COUNT(*) FROM ".$table_tips_experts." t WHERE tips_ID > ".$expert_tips_last_imported_id);
 
         $formaction = esc_attr($_SERVER['REQUEST_URI']);
-        $formnonce_raz = function_exists('wp_nonce_field') ? wp_nonce_field('pronostics-raz-tipseurs') : '';
-        $formsubmit_raz = __('Remise à zéro des stats tipseurs', 'pronostics');
 
         $formnonce_migrate = function_exists('wp_nonce_field') ? wp_nonce_field('pronostics-migrate-tips') : '';
         $formsubmit_migrate = __('Migrer les données', 'pronostics');
