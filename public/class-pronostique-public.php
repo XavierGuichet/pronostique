@@ -112,19 +112,23 @@ class Pronostique_Public
                                      null,
                                      'DESC');
 
-        $tips = array_reverse($tips->data());
 
         $graph_data = array();
         $cumulated_profit = 0;
-        foreach($tips as $tip) {
-            $profit = 0;
-            if (intval($tip->tips_result) == 1) {
-                $profit = $tip->mise * ($tip->cote - 1);
-            } elseif (intval($tip->tips_result) == 2) {
-                $profit = -$tip->mise;
+        if($tips->total()) {
+            $tips = array_reverse($tips->data());
+            foreach($tips as $tip) {
+                $profit = 0;
+                if (intval($tip->tips_result) == 1) {
+                    $profit = $tip->mise * ($tip->cote - 1);
+                } elseif (intval($tip->tips_result) == 2) {
+                    $profit = -$tip->mise;
+                }
+                $cumulated_profit = floatval($cumulated_profit) + floatval($profit);
+                $graph_data[] = $cumulated_profit;
             }
-            $cumulated_profit = floatval($cumulated_profit) + floatval($profit);
-            $graph_data[] = $cumulated_profit;
+        } else {
+            $graph_data[] = 0;
         }
 
         $emptylabels = implode(',', array_fill(0, count($graph_data), "''"));
@@ -425,12 +429,12 @@ class Pronostique_Public
                 }
                 $tips = array_merge($tips, $more_tips);
                 usort($tips, function($a,$b) {
-                    return strtotime($a->date) > strtotime($b->date);
+                    return strtotime($a->date) <= strtotime($b->date);
                 });
              }
         }
         if($params['reverse_order']) {
-            rsort($tips);
+            krsort($tips);
         }
 
 
@@ -465,7 +469,6 @@ class Pronostique_Public
 
         return $this->templater->display($template, array(
               'tips' => $tips,
-              'more_tips' => $more_tips,
               'display_columns' => $display_columns,
               'use_poolbox' => $params['use_poolbox'],
               'isUserAdherent' => $isUserAdherent,
