@@ -178,14 +178,10 @@ class Pronostique_Public
         // create one and associate it
         if (!$post_id) {
             if((int) $pieces[ 'fields' ][ 'is_vip' ][ 'value' ] == 1) {
-                // TODO: if needed to create vip category
+                $category[] = get_option("prono_vip_default_category", 0);
             }
             elseif((int) $pieces[ 'fields' ][ 'is_expert' ][ 'value' ] == 1) {
-                $category[] = 6; // TODO: could be get by an admin param
-                // $expert_category = get_term_by('slug', 'les-paris-de-nos-experts', 'category');
-                // if ($expert_category->term_id) {
-                //     $category[] = $expert_category->term_id;
-                // }
+                $category[] = get_option("prono_expert_default_category", 0);
             }
             $new_post = array(
                 'post_title' => $pieces[ 'fields' ][ 'name' ][ 'value' ],

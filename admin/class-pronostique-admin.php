@@ -190,17 +190,17 @@ class Pronostique_Admin {
     public function printPronosticsAdminPage()
     {
         global $wpdb;
+        global $wp_query;
         $table_tips = $wpdb->prefix.'bmk_tips';
         $table_tips_experts = $wpdb->prefix.'bmk_tips_experts';
-        $results = null;
+        $result = null;
+        $formaction = esc_attr($_SERVER['REQUEST_URI']);
 
         // TODO : keep in case of reset during migration
         // update_option( 'pronostique_migrate_last_id', '0' );
         // update_option( 'pronostique_migrate_expert_last_id', '0' );
-
         $std_tips_last_imported_id = get_option( 'pronostique_migrate_last_id', 0);
         $expert_tips_last_imported_id = get_option( 'pronostique_migrate_expert_last_id', 0);
-
         if (isset($_POST['migrate_std_tips'])) {
             check_admin_referer('pronostics-migrate-tips');
             $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips." t WHERE tips_ID > ".$std_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,50");
@@ -213,14 +213,24 @@ class Pronostique_Admin {
             $expert_tips_last_imported_id = $this->migrate_tips($all_tips, 1);
             update_option( 'pronostique_migrate_expert_last_id', $expert_tips_last_imported_id );
         }
-
         $count_std_tips_to_migrate = $wpdb->get_var("SELECT COUNT(*) FROM ".$table_tips." t WHERE tips_ID > ".$std_tips_last_imported_id);
         $count_expert_tips_to_migrate = $wpdb->get_var("SELECT COUNT(*) FROM ".$table_tips_experts." t WHERE tips_ID > ".$expert_tips_last_imported_id);
-
-        $formaction = esc_attr($_SERVER['REQUEST_URI']);
-
         $formnonce_migrate = function_exists('wp_nonce_field') ? wp_nonce_field('pronostics-migrate-tips') : '';
         $formsubmit_migrate = __('Migrer les données', 'pronostics');
+
+
+        if (isset($_POST['set_default_cat'])) {
+            check_admin_referer('pronostics-set-default-cat');
+            $expert_cat = (int) $_POST['prono_expert_default_cat'];
+            update_option( "prono_expert_default_category", $expert_cat );
+            $vip_cat = (int) $_POST['prono_vip_default_cat'];
+            update_option( "prono_vip_default_category", $vip_cat );
+        }
+        $formnonce_default_cat = function_exists('wp_nonce_field') ? wp_nonce_field('pronostics-set-default-cat') : '';
+
+        $categories = get_categories(array('hide_empty' => 0));
+        $prono_expert_cat = get_option("prono_expert_default_category", 0);
+        $prono_vip_cat = get_option("prono_vip_default_category", 0);
 
         ob_start();
         include_once 'partials/options-page.php';

@@ -9,7 +9,39 @@ if ( $results !== null ) {
 ?>
 <div class="wrap">
     <h1>Gestion des pronostics</h1><br/>
-
+    <h2>Gestion des catégories par défaut des pronostiques</h2>
+    <form method="post" action="<?=$formaction?>">
+        <?=$formnonce_default_cat?>
+        <div>
+            <label>Catégorie expert</label>
+            <select autocomplete="off" name="prono_expert_default_cat">
+                <?php
+                foreach($categories as $category) {
+                    $selected = '';
+                    if($category->term_id == $prono_expert_cat) {
+                        $selected = 'selected';
+                    }
+                    echo '<option value="'.$category->term_id.'" '.$selected.'>'.$category->name.'</option>';
+                }
+                ?>
+            </select>
+        </div>
+        <div>
+            <label>Catégorie VIP</label>
+            <select autocomplete="off" name="prono_vip_default_cat">
+                <?php
+                foreach($categories as $category) {
+                    $selected = '';
+                    if($category->term_id == $prono_vip_cat) {
+                        $selected = 'selected';
+                    }
+                    echo '<option value="'.$category->term_id.'" '.$selected.'>'.$category->name.'</option>';
+                }
+                ?>
+            </select>
+        </div>
+        <input type="submit" name="set_default_cat" value="Valider" />
+    </form>
     <h2>Migration des pronostique (tipseur) DB-Toolkit vers Pods</h2>
     <p>Reste à migrer : <b><?=$count_std_tips_to_migrate?></b> tips</p>
     <form method="post" action="<?=$formaction?>">
