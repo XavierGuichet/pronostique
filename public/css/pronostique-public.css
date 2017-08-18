@@ -212,7 +212,7 @@ HISTORY
 BILAN EXPERT
 ################
 */
-.bilanexpert .hidden_tips .match2 a, .bilanexpert .tips_vip .match2 a {
+.bilanexpert .hidden_tips .match2 a, .bilanexpert .tips_vip .match2 a, .bilan_expert_main .tips_vip .match2 a {
     color: #c0eb16;
 }
 .bilan_expert_top {}
