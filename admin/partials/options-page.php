@@ -1,6 +1,6 @@
 <?php
-if ( $results !== null ) {
-    if ($results) { ?>
+if ( $formresult !== null ) {
+    if ($formresult) { ?>
         <div class="updated"><p><strong>Mise à jour des paramètres réussie</strong></p></div>
     <?php } else { ?>
         <div class="error"><p><strong>Echec de la mise à jour des paramètres</strong></p></div>

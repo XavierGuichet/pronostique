@@ -78,13 +78,11 @@ class Pronostique_Admin {
 
 	}
 
-    public function add_option_page() {
+    public function add_admin_menu() {
         if (function_exists('add_options_page')) {
             add_options_page('Configuration du plugin pronostique', 'Pronostique', 'manage_options', 'pronostique_settings', array($this,'printPronosticsAdminPage'));
         }
-    }
 
-    public function add_quick_edit_pronostique() {
         if (function_exists('add_menu_page')) {
             add_menu_page(
                 __( 'Pronostique sans resultat', 'textdomain' ),
@@ -95,11 +93,6 @@ class Pronostique_Admin {
                 '',
                 4
             );
-        }
-    }
-
-    public function add_tipster_confirmation() {
-        if (function_exists('add_menu_page')) {
             add_menu_page(
                 __( 'Nouveaux Tipsters', 'textdomain' ),
                 __( 'New Tipster', 'textdomain' ),
@@ -110,6 +103,29 @@ class Pronostique_Admin {
                 5
             );
         }
+    }
+
+    public function display_pronostique_ui() {
+        $object = pods( 'pronostique' );
+        $ui = array(
+            'pod' => $object,
+            'orderby' => 'ID desc',
+            'search_across_picks' => true,
+            'filters' => array('bookmaker','tips_result','is_expert','is_vip'),
+            'fields' => array('manage' => array('name','pari','bookmaker','date','tips_result','match_result','is_expert','is_vip','author','id'))
+        );
+
+        pods_ui( $ui );
+    }
+
+    public function printPronosticsQuickEditAdminPage() {
+        $tipsWithoutResult = pods('pronostique')->find(
+                            array('limit' => 0,
+                                'where' => '(tips_result = 0 OR tips_result IS NULL) AND date < NOW()',
+                                'orderby' => 'date DESC'
+                            ));
+
+        echo $this->templater->display('pronostique-quick-edit', array('tips' => $tipsWithoutResult));
     }
 
     public function ajax_quick_edit_pronostique() {
@@ -136,29 +152,6 @@ class Pronostique_Admin {
                                 "errors" => $errors));
 
     	wp_die();
-    }
-
-    public function display_pronostique_ui() {
-        $object = pods( 'pronostique' );
-        $ui = array(
-            'pod' => $object,
-            'orderby' => 'ID desc',
-            'search_across_picks' => true,
-            'filters' => array('bookmaker','tips_result','is_expert','is_vip'),
-            'fields' => array('manage' => array('name','pari','bookmaker','date','tips_result','match_result','is_expert','is_vip','author','id'))
-        );
-
-        pods_ui( $ui );
-    }
-
-    public function printPronosticsQuickEditAdminPage() {
-        $tipsWithoutResult = pods('pronostique')->find(
-                            array('limit' => 0,
-                                'where' => '(tips_result = 0 OR tips_result IS NULL) AND date < NOW()',
-                                'orderby' => 'date DESC'
-                            ));
-
-        echo $this->templater->display('pronostique-quick-edit', array('tips' => $tipsWithoutResult));
     }
 
     public function printTipsterConfirmationAdminPage() {
@@ -193,12 +186,12 @@ class Pronostique_Admin {
         global $wp_query;
         $table_tips = $wpdb->prefix.'bmk_tips';
         $table_tips_experts = $wpdb->prefix.'bmk_tips_experts';
-        $result = null;
+        $formresult = null;
         $formaction = esc_attr($_SERVER['REQUEST_URI']);
 
         // TODO : keep in case of reset during migration
-        // update_option( 'pronostique_migrate_last_id', '0' );
-        // update_option( 'pronostique_migrate_expert_last_id', '0' );
+        update_option( 'pronostique_migrate_last_id', '0' );
+        update_option( 'pronostique_migrate_expert_last_id', '0' );
         $std_tips_last_imported_id = get_option( 'pronostique_migrate_last_id', 0);
         $expert_tips_last_imported_id = get_option( 'pronostique_migrate_expert_last_id', 0);
         if (isset($_POST['migrate_std_tips'])) {
@@ -290,18 +283,7 @@ class Pronostique_Admin {
                 $match_result = $tips->tips_resultat_str;
             }
 
-            $post_id = 0;
-            //duplicate post as a custom prono-post and put old post in trash
-            if ($tips->tips_post_id) {
-                $post_id = $tips->tips_post_id;
-
-                $bool = wp_update_post( array(  'ID' => $post_id,
-                                        'post_type' => 'prono-post',
-                                        'post_title' => $tips->tips_match,
-                                        'post_name' => sanitize_title($tips->tips_match), //reset slug
-                                        'post_status' => 'publish',
-                                        'tax_input' => array('sport' => $sport_id)) );
-            }
+            $post_id = $this->migrate_post($tips, $sport_id);
 
             $pods_data[] = array(
                 'name' => $tips->tips_match,
@@ -319,10 +301,7 @@ class Pronostique_Admin {
                 'is_vip' => 0,
                 'post' => $post_id,
                 'created' => $tips->tips_created_at,
-                'author' => $tips->user_id,
-                // 'miniature' => $tips->,
-                // 'modified' => $tips->,
-                // 'permalink' => , //Is auto set
+                'author' => $tips->user_id
             );
             $last_id = $tips->tips_ID;
         }
@@ -332,4 +311,20 @@ class Pronostique_Admin {
         return $last_id;
     }
 
+    //Transform linked post in prono-post
+    //If there is no linked post class-pronostique-public create linked post, will create one
+    private function migrate_post($tips, $sport_id) {
+        $post_id = 0;
+        if ($tips->tips_post_id) {
+            $post_id = $tips->tips_post_id;
+
+            $bool = wp_update_post( array(  'ID' => $post_id,
+                                    'post_type' => 'prono-post',
+                                    'post_title' => $tips->tips_match,
+                                    'post_name' => sanitize_title($tips->tips_match), //reset slug
+                                    'post_status' => 'publish',
+                                    'tax_input' => array('sport' => $sport_id)) );
+        }
+        return $post_id;
+    }
 }

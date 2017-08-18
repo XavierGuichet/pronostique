@@ -75,6 +75,7 @@ class Pronostique {
 		$this->set_locale();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
+        $this->define_shared_hooks();
 
 	}
 
@@ -108,16 +109,11 @@ class Pronostique {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-pronostique-i18n.php';
 
-		/**
-		 * The class responsible for defining all actions that occur in the admin area.
-		 */
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'shared/class-pronostique-shared.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-pronostique-admin.php';
+        require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-pronostique-public.php';
 
-		/**
-		 * The class responsible for defining all actions that occur in the public-facing
-		 * side of the site.
-		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-pronostique-public.php';
+
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/widgets/top-tipsters.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/widgets/top-vip.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/widgets/tipster-stats.php';
@@ -156,16 +152,33 @@ class Pronostique {
 	 * @since    1.0.0
 	 * @access   private
 	 */
+	private function define_shared_hooks() {
+
+		$plugin_shared = new Pronostique_Shared( $this->get_plugin_name(), $this->get_version() );
+
+        $this->loader->add_action( 'save_post', $plugin_shared, 'update_comments_meta' );
+        $this->loader->add_action( 'pods_api_post_save_pod_item_pronostique', $plugin_shared, 'sync_post_with_prono', 10, 3);
+        $this->loader->add_action( 'pods_api_post_save_pod_item_prono-post', $plugin_shared, 'sync_prono_with_post', 10, 3);
+        $this->loader->add_filter( 'comments_open', $plugin_shared, 'prono_comment_open', 10, 2 );
+        $this->loader->add_filter( 'pods_api_pre_save_pod_item_pronostique', $plugin_shared, 'fix_cote_comma_float', 10, 3);
+        $this->loader->add_filter( 'pods_api_pre_save_pod_item_pronostique', $plugin_shared, 'validate_form', 10, 3);
+        $this->loader->add_filter( 'pre_get_posts', $plugin_shared, 'add_custom_types' );
+	}
+
+	/**
+	 * Register all of the hooks related to the admin area functionality
+	 * of the plugin.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 */
 	private function define_admin_hooks() {
 
 		$plugin_admin = new Pronostique_Admin( $this->get_plugin_name(), $this->get_version() );
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
-        $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_option_page');
-        $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_tipster_confirmation');
-        $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_quick_edit_pronostique');
-        $this->loader->add_action( 'wp_ajax_quick_edit_pronostique', $plugin_admin, 'ajax_quick_edit_pronostique');
+        $this->loader->add_action( 'admin_menu', $plugin_admin, 'add_admin_menu');
         $this->loader->add_action( 'wp_ajax_quick_edit_pronostique', $plugin_admin, 'ajax_quick_edit_pronostique');
         $this->loader->add_action( 'pods_admin_ui_custom_pronostique', $plugin_admin, 'display_pronostique_ui');
 	}
@@ -185,13 +198,6 @@ class Pronostique {
 		$this->loader->add_action( 'widgets_init', $plugin_public, 'register_widgets' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
-        $this->loader->add_action( 'save_post', $plugin_public, 'update_comments_meta' );
-        $this->loader->add_filter( 'comments_open', $plugin_public, 'prono_comment_open', 10, 2 );
-        $this->loader->add_action( 'pods_api_post_save_pod_item_pronostique', $plugin_public, 'create_linked_prono_post', 10, 3);
-        $this->loader->add_action( 'pods_api_post_save_pod_item_prono-post', $plugin_public, 'sync_analyse', 10, 3);
-        $this->loader->add_filter( 'pods_api_pre_save_pod_item_pronostique', $plugin_public, 'fix_cote_comma_float', 10, 3);
-        $this->loader->add_filter( 'pods_api_pre_save_pod_item_pronostique', $plugin_public, 'validate_form', 10, 3);
-        $this->loader->add_filter( 'pre_get_posts', $plugin_public, 'add_custom_types' );
 
 	}
 

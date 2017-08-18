@@ -67,44 +67,6 @@ class Pronostique_Public
         wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__).'js/pronostique-public.js', array('jquery'), $this->version, false);
     }
 
-    // Force opening comments
-    public function prono_comment_open($open, $post_id)
-    {
-        global $post;
-        $comm_status = $post->comment_status;
-        $post_type = $post->post_type;
-        $post_id = (int) $post->ID;
-        $open = ($post_type == 'page') ? true : $open;
-        $open = ($comm_status == 'open') ? true : $open;
-        $open = is_front_page() ? false : $open;
-        $open = ($post_id == 11557 || $post_id == 19093 || 28900) ? false : $open;
-
-        return $open;
-    }
-
-    // Comment Meta
-    public function update_comments_meta($post_id)
-    {
-        $args = array(
-            'post_id' => $post_id,
-        );
-        $comments = get_comments($args);
-        if (!empty($comments)) {
-            foreach ($comments as $comment) {
-                update_comment_meta($comment->comment_ID, 'pronostic_tips_id', $_GET['id']);
-            }
-        }
-    }
-
-    function add_custom_types( $query ) {
-    if( (is_category() || is_tag()) && $query->is_archive() && empty( $query->query_vars['suppress_filters'] ) ) {
-        $query->set( 'post_type', array(
-         'post', 'prono-post'
-            ));
-        }
-    return $query;
-    }
-
     public function register_widgets()
     {
         register_widget('TipsterStats_Widget');
@@ -116,113 +78,17 @@ class Pronostique_Public
     public function register_shortcodes()
     {
         add_shortcode('menu-pronostics', array($this, 'sc_displayMenuPronostic'));
-
         add_shortcode('liste-experts',   array($this, 'sc_displayListExperts'));
-
         add_shortcode('liste-paris', array($this, 'sc_displayListParis'));
         add_shortcode('liste-paris-editable', array($this, 'sc_displayListParisEditable'));
-
         add_shortcode('liste-top-tipsers', array($this, 'sc_getListTop'));
         add_shortcode('classement-hotstreak', array($this, 'sc_getHotStreakRanking'));
-
         add_shortcode('poolbox', array($this, 'sc_displayPoolBox'));
         add_shortcode('stats-experts', array($this, 'sc_displayStatsExperts'));
-
-        add_shortcode('user-stats-side', array($this, 'sc_displayUserStatsSide'));
-
         add_shortcode('user-perf-summary', array($this, 'sc_displayUserPerfSummary'));
         add_shortcode('history-graph', array($this, 'sc_displayHistoryGraph'));
         add_shortcode('user-history-pagination', array($this, 'sc_displayUserHistoryPagination'));
-
         add_shortcode('global-perf', array($this, 'sc_displayGlobalPerf'));
-    }
-
-    public function validate_form($pieces, $is_new_item) {
-        //Si ce n'est pas la migration
-        if(!isset($_POST['migrate_expert_tips']) && !isset($_POST['migrate_std_tips'])) {
-            if (isset($pieces[ 'fields' ][ 'analyse' ][ 'value' ])) {
-                $stripped_analyse = strip_tags($pieces[ 'fields' ][ 'analyse' ][ 'value' ]);
-                if(strlen($stripped_analyse) < 500) {
-                    $message = "Votre analyse doit faire au moins 500 caractères. Elle fait actuellement : ".strlen($stripped_analyse);
-                    return pods_error($message);
-                }
-            }
-        }
-        return $pieces;
-    }
-    // pods is localized for number type, So it accept either comma or dot.
-    // we've setted pods to use dot, and if user use a comma we transform it in dot
-    public function fix_cote_comma_float($pieces, $is_new_item) {
-        if (isset($pieces[ 'fields' ][ 'cote' ][ 'value' ])) {
-            $cote = $pieces[ 'fields' ][ 'cote' ][ 'value' ];
-            $pieces[ 'fields' ][ 'cote' ][ 'value' ] = str_replace(',', '.',$cote);
-        }
-        return $pieces;
-    }
-    /*
-     *  Create a prono-post if none are associated
-     *  Set category of prono-post and sport taxonomy
-     *  Associate the prono-post to pronostique and the the inverted relation
-     */
-    public function create_linked_prono_post($pieces, $is_new_item, $id) {
-        $post_id = false;
-        $prono = pods('pronostique',$id);
-        if (isset($pieces[ 'fields' ][ 'post' ][ 'value' ])) {
-            $post_id = (int) $pieces[ 'fields' ][ 'post' ][ 'value' ];
-        }
-        if ($prono->field('post')) {
-            $post_id = $prono->field('post.ID');
-        }
-        $category = array();
-        // when pronostique doesn't have a prono-post linked
-        // create one and associate it
-        if (!$post_id) {
-            if((int) $pieces[ 'fields' ][ 'is_vip' ][ 'value' ] == 1) {
-                $category[] = get_option("prono_vip_default_category", 0);
-            }
-            elseif((int) $pieces[ 'fields' ][ 'is_expert' ][ 'value' ] == 1) {
-                $category[] = get_option("prono_expert_default_category", 0);
-            }
-            $new_post = array(
-                'post_title' => $pieces[ 'fields' ][ 'name' ][ 'value' ],
-                'post_content' => $pieces[ 'fields' ][ 'analyse' ][ 'value' ],
-                'post_status' => 'publish',
-                'post_date' => date('Y-m-d H:i:s'),
-                'post_author' => $pieces[ 'fields' ][ 'author' ][ 'value' ],
-                'post_type' => 'prono-post',
-                'meta_input' => array('pronostique' => $id)
-            );
-            if (count($category) > 0) {
-                $new_post['post_category'] = $category;
-            }
-            $post_id = wp_insert_post($new_post);
-            wp_set_object_terms($post_id, intval($pieces[ 'fields' ][ 'sport' ][ 'value' ]), 'sport', false);
-
-
-            $prono->save(array('post' => $post_id));
-        }
-        // synchronyse les analyse
-        $linked_post = get_post($post_id);
-        if (strlen($prono->field('analyse')) != strlen($linked_post->post_content)) {
-            wp_update_post( array( 'ID' => $post_id, 'post_content' => $prono->field('analyse') ) );
-        }
-        if ($prono->field('name') != $linked_post->post_title) {
-            wp_update_post( array( 'ID' => $post_id, 'post_title' => $prono->field('name') ) );
-        }
-    }
-
-    public function sync_analyse($pieces, $is_new_item, $post_id) {
-        $prono_id = $pieces[ 'fields' ][ 'pronostique' ][ 'value' ];
-        if($prono_id) {
-            $prono = pods('pronostique',$prono_id);
-            $linked_post = get_post($post_id);
-            if (strlen($prono->field('analyse')) != strlen($linked_post->post_content)) {
-                $prono->save( array( 'analyse' => $linked_post->post_content ));
-            }
-            if ($prono->field('name') != $linked_post->post_title) {
-                $prono->save( array( 'name' => $linked_post->post_title ));
-            }
-        }
     }
 
     //######################
@@ -607,7 +473,8 @@ class Pronostique_Public
           ));
     }
 
-    public function sc_displayListParisEditable($atts = [], $content = null, $tag = '') {
+    public function sc_displayListParisEditable($atts = [], $content = null, $tag = '')
+    {
         $params = $this->prepareParams($atts, $tag);
         $tips = $this->getPronostics($params['user_id'],
                                      $params['sport'],
@@ -625,6 +492,7 @@ class Pronostique_Public
 
         return $this->templater->display('liste-paris-editable', array('tips' => $tips));
     }
+
     public function sc_displayGlobalPerf($atts = [], $content = null, $tag = '')
     {
         $params = $this->prepareParams($atts, $tag);
@@ -655,14 +523,7 @@ class Pronostique_Public
                             'gain_month' => $gain_month,
                             'gain_global' => $gain_global, ));
     }
-    // TODO : Le shortcode 'list tipster ...' à un nom pourri.
-    // Celui ci retourne des classements. Il devrait donc s'appeller classement.
-    // Comme les tips std et expert sont maintenant regroupé. Il faudra ajouter un paramètre
-    // Les params d'un classement sont :
-    //   + Pari expert ou pari standard (potentiellement pari VIP)
-    //   + Limit de resultat
-    //   + Limite de mois (possibilité d'archive ?)
-    //   + Titre 'bien que je trouve pas ca top'
+
     public function getListTop($titre = 'Top tipsters du mois', $of_the_month = true, $max = 10)
     {
         $cond_month = $of_the_month == 'true' ? ' AND MONTH(date) = MONTH(NOW()) AND YEAR(date) = YEAR(NOW())' : '';
