@@ -16,6 +16,9 @@
     float: left;
     margin-bottom: 8px;
 }
+.home_expert:hover {
+    background: none repeat scroll 0 0 #c2d8ff;
+}
 .home_expert_row {
     width: 100%;
 }
