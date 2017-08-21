@@ -132,11 +132,15 @@ class Pronostique_Shared
         // when pronostique doesn't have a prono-post linked
         // create one and associate it
         if (!$post_id) {
+            $date = date('Y-m-d H:i:s');
+            if(strtotime($prono->field('date')) < strtotime( "2017-08-20")) {
+                $date = $prono->field('date');
+            }
             $new_post = array(
                 'post_title' => $pieces[ 'fields' ][ 'name' ][ 'value' ],
                 'post_content' => $pieces[ 'fields' ][ 'analyse' ][ 'value' ],
                 'post_status' => 'publish',
-                'post_date' => date('Y-m-d H:i:s'),
+                'post_date' => $date,
                 'post_author' => $pieces[ 'fields' ][ 'author' ][ 'value' ],
                 'post_type' => 'prono-post',
                 'meta_input' => array('pronostique' => $id)
@@ -171,12 +175,15 @@ class Pronostique_Shared
         if(isset($pieces[ 'fields' ][ 'is_vip' ][ 'value' ]) && (int) $pieces[ 'fields' ][ 'is_vip' ][ 'value' ] == 1) {
             $added_categories[] = (int) get_option("prono_vip_default_category", 0);
             $remove_categories[] = (int) get_option("prono_expert_default_category", 0);
+            $remove_categories[] = (int) get_option("prono_std_default_category", 0);
         }
         elseif(isset($pieces[ 'fields' ][ 'is_expert' ][ 'value' ]) && (int) $pieces[ 'fields' ][ 'is_expert' ][ 'value' ] == 1) {
             $added_categories[] = (int) get_option("prono_expert_default_category", 0);
             $remove_categories[] = (int) get_option("prono_vip_default_category", 0);
+            $remove_categories[] = (int) get_option("prono_std_default_category", 0);
         }
         else {
+            $added_categories[] = (int) get_option("prono_std_default_category", 0);
             $remove_categories[] = (int) get_option("prono_expert_default_category", 0);
             $remove_categories[] = (int) get_option("prono_vip_default_category", 0);
         }

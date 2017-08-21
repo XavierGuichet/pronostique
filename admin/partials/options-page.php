@@ -40,6 +40,20 @@ if ( $formresult !== null ) {
                 ?>
             </select>
         </div>
+        <div>
+            <label>Catégorie Standard</label>
+            <select autocomplete="off" name="prono_std_default_cat">
+                <?php
+                foreach($categories as $category) {
+                    $selected = '';
+                    if($category->term_id == $prono_std_cat) {
+                        $selected = 'selected';
+                    }
+                    echo '<option value="'.$category->term_id.'" '.$selected.'>'.$category->name.'</option>';
+                }
+                ?>
+            </select>
+        </div>
         <input type="submit" name="set_default_cat" value="Valider" />
     </form>
     <h2>Migration des pronostique (tipseur) DB-Toolkit vers Pods</h2>

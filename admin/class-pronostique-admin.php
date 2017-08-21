@@ -102,6 +102,15 @@ class Pronostique_Admin {
                 '',
                 5
             );
+            add_menu_page(
+                __( 'Resultat concours', 'textdomain' ),
+                __( 'Concours', 'textdomain' ),
+                'manage_options',
+                'show_month_contest_results',
+                array($this,'printMonthContestResult'),
+                '',
+                5
+            );
         }
     }
 
@@ -116,6 +125,46 @@ class Pronostique_Admin {
         );
 
         pods_ui( $ui );
+    }
+
+    public function printMonthContestResult() {
+        $formnonce = function_exists('wp_nonce_field') ? wp_nonce_field('change-month') : '';
+        $formaction = esc_attr($_SERVER['REQUEST_URI']);
+        $month = date('n');
+        $year = date('Y');
+
+        if (isset($_POST['change_month'])) {
+            var_dump("posted");
+            check_admin_referer('change-month');
+            $month = (int) $_POST['month'];
+            $year = (int) $_POST['year'];
+        }
+
+        $selected_month = date('F Y',strtotime($year."-".$month."-01"));
+
+        $cond_month = ' AND MONTH(date) = '.$month.' AND YEAR(date) = '.$year.' ';
+
+        $VPNA_sql = " SUM(IF(tips_result = 1,1,0)) AS 'V', SUM(IF(tips_result = 3,1,0)) AS 'N', SUM(IF(tips_result = 2,1,0)) AS 'P', SUM(IF(tips_result = 0,1,0)) AS 'A'";
+        $pronos = pods('pronostique')->find(
+            array(
+                'select' => $VPNA_sql.', ROUND(SUM( IF(tips_result = 1, (cote-1)*mise, IF(tips_result = 2, - mise, IF(tips_result = 3, 0, 0))) ), 2) AS Gain, COUNT(t.id) as nb_tips, t.*',
+                'where' => 'tips_result > 0 AND is_expert = 0'.$cond_month,
+                'limit' => -1,
+                'orderby' => 'Gain Desc',
+                'groupby' => 'author.id',
+            )
+            );
+
+        $entetes = '<tr><th>&nbsp;</th> <th>Pseudo</th> <th>V - P -N</th> <th>Nb Tips</th><th>Profit</th></tr>';
+        $tpl_params = array('titre' => 'resultat du concours',
+                            'entetes' => $entetes,
+                            'formnonce' => $formnonce,
+                            'formaction' => $formaction,
+                                'row' => $pronos,
+                                'month' => $selected_month,
+                            );
+
+        echo $this->templater->display('month-contest-result', $tpl_params);
     }
 
     public function printPronosticsQuickEditAdminPage() {
@@ -196,7 +245,7 @@ class Pronostique_Admin {
         $expert_tips_last_imported_id = get_option( 'pronostique_migrate_expert_last_id', 0);
         if (isset($_POST['migrate_std_tips'])) {
             check_admin_referer('pronostics-migrate-tips');
-            $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips." t WHERE tips_ID > ".$std_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,50");
+            $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips." t WHERE tips_ID > ".$std_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,10");
             $std_tips_last_imported_id = $this->migrate_tips($all_tips, 0);
             update_option( 'pronostique_migrate_last_id', $std_tips_last_imported_id );
         }
@@ -218,12 +267,15 @@ class Pronostique_Admin {
             update_option( "prono_expert_default_category", $expert_cat );
             $vip_cat = (int) $_POST['prono_vip_default_cat'];
             update_option( "prono_vip_default_category", $vip_cat );
+            $std_cat = (int) $_POST['prono_std_default_cat'];
+            update_option( "prono_std_default_category", $std_cat );
         }
         $formnonce_default_cat = function_exists('wp_nonce_field') ? wp_nonce_field('pronostics-set-default-cat') : '';
 
         $categories = get_categories(array('hide_empty' => 0));
         $prono_expert_cat = get_option("prono_expert_default_category", 0);
         $prono_vip_cat = get_option("prono_vip_default_category", 0);
+        $prono_std_cat = get_option("prono_std_default_category", 0);
 
         ob_start();
         include_once 'partials/options-page.php';
