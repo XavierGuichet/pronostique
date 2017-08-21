@@ -59,9 +59,8 @@ class Pronostique_Shared
         $open = ($comm_status == 'open') ? true : $open;
         $open = is_front_page() ? false : $open;
         $open = ($post_type == 'page') ? false : $open;
-        $open = ($post_id == 11557 || $post_id == 19093 || 28900) ? false : $open;
-        $open = ($post_type == 'prono-post') ? true : $open;
-
+        $open = ($post_id == 11557 || $post_id == 19093 || $post_id == 28900) ? false : $open;
+        
         return $open;
     }
 
