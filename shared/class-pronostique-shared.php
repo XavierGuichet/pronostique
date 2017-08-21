@@ -119,6 +119,7 @@ class Pronostique_Shared
      */
     public function sync_post_with_prono($pieces, $is_new_item, $id) {
         remove_filter('save_post', array($GLOBALS['scoper_admin_filters'], 'custom_taxonomies_helper'), 5, 2);
+        remove_filter('pods_api_post_save_pod_item_pronostique', array($this, 'sync_prono_with_post'), 5, 2);
         $post_id = false;
         $prono = pods('pronostique',$id);
 
@@ -167,11 +168,11 @@ class Pronostique_Shared
         }
         $added_categories = array();
         $remove_categories = array();
-        if((int) $pieces[ 'fields' ][ 'is_vip' ][ 'value' ] == 1) {
+        if(isset($pieces[ 'fields' ][ 'is_vip' ][ 'value' ]) && (int) $pieces[ 'fields' ][ 'is_vip' ][ 'value' ] == 1) {
             $added_categories[] = (int) get_option("prono_vip_default_category", 0);
             $remove_categories[] = (int) get_option("prono_expert_default_category", 0);
         }
-        elseif((int) $pieces[ 'fields' ][ 'is_expert' ][ 'value' ] == 1) {
+        elseif(isset($pieces[ 'fields' ][ 'is_expert' ][ 'value' ]) && (int) $pieces[ 'fields' ][ 'is_expert' ][ 'value' ] == 1) {
             $added_categories[] = (int) get_option("prono_expert_default_category", 0);
             $remove_categories[] = (int) get_option("prono_vip_default_category", 0);
         }
@@ -186,7 +187,11 @@ class Pronostique_Shared
     }
 
     public function sync_prono_with_post($pieces, $is_new_item, $post_id) {
-        $prono_id = $pieces[ 'fields' ][ 'pronostique' ][ 'value' ];
+        remove_filter('pods_api_post_save_pod_item_prono-post', array($this, 'sync_post_with_prono'), 5, 2);
+        $prono_id = false;
+        if(isset($pieces[ 'fields' ][ 'pronostique' ][ 'value' ])) {
+            $prono_id = $pieces[ 'fields' ][ 'pronostique' ][ 'value' ];
+        }
         if($prono_id) {
             $prono = pods('pronostique',$prono_id);
             $linked_post = get_post($post_id);
