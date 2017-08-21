@@ -9,7 +9,7 @@ if ( $formresult !== null ) {
 ?>
 <div class="wrap">
     <h1>Gestion des pronostics</h1><br/>
-    <h2>Gestion des catégories par défaut des pronostiques</h2>
+    <h2>Gestion des catégories par défaut des pronostics</h2>
     <form method="post" action="<?=$formaction?>">
         <?=$formnonce_default_cat?>
         <div>

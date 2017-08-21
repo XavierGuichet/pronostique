@@ -245,7 +245,7 @@ class Pronostique_Public
             if ($est_expert) {
                 $links[] = array('title' => 'Ajouter un prono. expert',
                                  'href' => '/formulaire-experts', );
-                $links[] = array('title' => 'Corriger un pronostique',
+                $links[] = array('title' => 'Corriger un pronostic',
                                  'href' => '/my-pronostics', );
             }
         }

@@ -57,7 +57,7 @@ foreach($tips as $tips) {
     <tr class="hidden_tips">
         <?=($display_columns['date'] ? '<td class="date2">'.date_i18n("j/m", strtotime($tips->date)).'</td>' : '')?>
         <?=($display_columns['icon'] ? '<td class="resultat2"> <i class="fa '.Formatter::resultat2str($tips->tips_result).'" aria-hidden="true"></i> </td>' : '')?>
-        <?=($display_columns['match'] ? '<td class="match2"> <strong> <a class="simplelink" href="/vip/">Rejoignez les VIPS pour accéder à ce pronostique</a> </strong> </td>' : '')?>
+        <?=($display_columns['match'] ? '<td class="match2"> <strong> <a class="simplelink" href="/vip/">Rejoignez le VIP pour accéder à ce pari</a> </strong> </td>' : '')?>
         <?=($display_columns['sport'] ? '<td class="sport2">'.$tips->sport.'</td>' : '')?>
         <?=($display_columns['pari'] ? '<td class=""><i class="fa fa-lock" aria-hidden="true"></i></td>' : '')?>
         <?=($display_columns['resultat'] ? '<td class=""></td>' : '')?>
