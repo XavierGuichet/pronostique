@@ -66,9 +66,9 @@ if( $count_expert_tips_to_migrate > 0) {
 <script>
 (function( $ ) {
     'use strict';
-    // $(document).ready( function() {
-    //     $("#expert_migrate").trigger('click');
-    // });
+    $(document).ready( function() {
+        $("#expert_migrate").trigger('click');
+    });
 })( jQuery );
 </script>
 <?php } elseif( $count_std_tips_to_migrate > 0) {?>

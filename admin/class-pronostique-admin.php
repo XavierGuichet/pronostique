@@ -190,8 +190,8 @@ class Pronostique_Admin {
         $formaction = esc_attr($_SERVER['REQUEST_URI']);
 
         // TODO : keep in case of reset during migration
-        update_option( 'pronostique_migrate_last_id', '0' );
-        update_option( 'pronostique_migrate_expert_last_id', '0' );
+        // update_option( 'pronostique_migrate_last_id', '0' );
+        // update_option( 'pronostique_migrate_expert_last_id', '0' );
         $std_tips_last_imported_id = get_option( 'pronostique_migrate_last_id', 0);
         $expert_tips_last_imported_id = get_option( 'pronostique_migrate_expert_last_id', 0);
         if (isset($_POST['migrate_std_tips'])) {
@@ -202,7 +202,7 @@ class Pronostique_Admin {
         }
         if (isset($_POST['migrate_expert_tips'])) {
             check_admin_referer('pronostics-migrate-tips');
-            $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips_experts." t WHERE tips_ID > ".$expert_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,1");
+            $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips_experts." t WHERE tips_ID > ".$expert_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,25");
             $expert_tips_last_imported_id = $this->migrate_tips($all_tips, 1);
             update_option( 'pronostique_migrate_expert_last_id', $expert_tips_last_imported_id );
         }
@@ -239,7 +239,7 @@ class Pronostique_Admin {
         $pods_bookmaker = pods('bookmaker')->find();
         $bookmaker_ids = array();
         while ( $pods_bookmaker->fetch() ) {
-            $bookmaker_ids[$pods_bookmaker->field('name')] = $pods_bookmaker->field('id');
+            $bookmaker_ids[$pods_bookmaker->field('name')] = (int) $pods_bookmaker->field('id');
         }
 
         $sport_taxonomy = get_terms( 'sport',array(
@@ -283,7 +283,10 @@ class Pronostique_Admin {
                 $match_result = $tips->tips_resultat_str;
             }
 
-            $post_id = $this->migrate_post($tips, $sport_id);
+            $post_id = '';
+            if ($tips->tips_post_id) {
+                $post_id = $this->migrate_post($tips, $sport_id);
+            }
 
             $pods_data[] = array(
                 'name' => $tips->tips_match,
@@ -305,26 +308,21 @@ class Pronostique_Admin {
             );
             $last_id = $tips->tips_ID;
         }
-        // $last_id = 0;
+
         $api = pods_api( 'pronostique' );
         $ids = $api->import( $pods_data, true );
         return $last_id;
     }
 
     //Transform linked post in prono-post
-    //If there is no linked post class-pronostique-public create linked post, will create one
+    //If there is no linked post class-pronostique-public sync_post_with_prono, will create one
     private function migrate_post($tips, $sport_id) {
-        $post_id = 0;
-        if ($tips->tips_post_id) {
-            $post_id = $tips->tips_post_id;
-
-            $bool = wp_update_post( array(  'ID' => $post_id,
-                                    'post_type' => 'prono-post',
-                                    'post_title' => $tips->tips_match,
-                                    'post_name' => sanitize_title($tips->tips_match), //reset slug
-                                    'post_status' => 'publish',
-                                    'tax_input' => array('sport' => $sport_id)) );
-        }
+        $bool = wp_update_post( array(  'ID' => $tips->tips_post_id,
+                                'post_type' => 'prono-post',
+                                'post_title' => $tips->tips_match,
+                                'post_name' => sanitize_title($tips->tips_match), //reset slug
+                                'post_status' => 'publish',
+                                'tax_input' => array('sport' => $sport_id)) );
         return $post_id;
     }
 }
