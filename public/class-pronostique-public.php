@@ -230,8 +230,8 @@ class Pronostique_Public
         if (is_user_logged_in()) {
             // Verifie si l'utilisateur appartient au groupe Tipseur et/ou Expert
             $user_id = get_current_user_id();
-            $est_expert = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->user2group_rs JOIN $wpdb->groups_rs ON $wpdb->groups_id_col = $wpdb->user2group_gid_col WHERE $wpdb->groups_name_col LIKE '".UsersDAO::GROUP_EXPERTS."' AND $wpdb->user2group_uid_col = '$user_id'");
-            $est_tipster = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->user2group_rs JOIN $wpdb->groups_rs ON $wpdb->groups_id_col = $wpdb->user2group_gid_col WHERE $wpdb->groups_name_col LIKE '".UsersDAO::GROUP_TIPSERS."' AND $wpdb->user2group_uid_col = '$user_id'");
+            $est_expert = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->user2group_rs JOIN $wpdb->groups_rs ON $wpdb->groups_id_col = $wpdb->user2group_gid_col WHERE $wpdb->groups_name_col LIKE '".UsersGroup::GROUP_EXPERTS."' AND $wpdb->user2group_uid_col = '$user_id'");
+            $est_tipster = $wpdb->get_var("SELECT COUNT(*) FROM $wpdb->user2group_rs JOIN $wpdb->groups_rs ON $wpdb->groups_id_col = $wpdb->user2group_gid_col WHERE $wpdb->groups_name_col LIKE '".UsersGroup::GROUP_TIPSERS."' AND $wpdb->user2group_uid_col = '$user_id'");
 
             if ($est_tipster) {
                 $links[] = array('title' => 'Mes statistiques',
@@ -463,7 +463,7 @@ class Pronostique_Public
                 );
         }
 
-        $isUserAdherent = UsersDAO::isUserInGroup(get_current_user_id(), UsersDAO::GROUP_ADHERENTS);
+        $isUserAdherent = UsersGroup::isUserInGroup(get_current_user_id(), UsersGroup::GROUP_ADHERENTS);
 
         $template = $params['display'].'-pronostics';
 

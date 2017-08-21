@@ -1,6 +1,6 @@
 <?php
 
-class UsersDAO
+class UsersGroup
 {
     const GROUP_RETIRED_EXPERTS = 'ExpertsSupprimes';
     const GROUP_EXPERTS = 'Experts';
@@ -36,8 +36,8 @@ class UsersDAO
     {
         $groups = self::getUserGroups($uid);
 
-        return (in_array(UsersDAO::GROUP_TIPSERS, $groups) ||
-                in_array(UsersDAO::GROUP_EXPERTS, $groups) ||
-                in_array(UsersDAO::GROUP_RETIRED_EXPERTS, $groups));
+        return (in_array(UsersGroup::GROUP_TIPSERS, $groups) ||
+                in_array(UsersGroup::GROUP_EXPERTS, $groups) ||
+                in_array(UsersGroup::GROUP_RETIRED_EXPERTS, $groups));
     }
 }

@@ -58,7 +58,7 @@ class TipsterLastTips_Widget extends WP_Widget {
 
         $tips = pods('pronostique')->find($params);
 
-        $isUserAdherent = UsersDAO::isUserInGroup(get_current_user_id(), UsersDAO::GROUP_ADHERENTS);
+        $isUserAdherent = UsersGroup::isUserInGroup(get_current_user_id(), UsersGroup::GROUP_ADHERENTS);
 
         $tpl_params = array(
                             'before_widget' => $args['before_widget'],

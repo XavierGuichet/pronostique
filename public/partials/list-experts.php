@@ -1,12 +1,12 @@
 <?php
 if ($experts->total() > 0) {
     while ($experts->fetch()) {
-        $is_expert = UsersDAO::isUserInGroup($experts->field('user_id'), UsersDAO::GROUP_EXPERTS);
+        $is_expert = UsersGroup::isUserInGroup($experts->field('user_id'), UsersGroup::GROUP_EXPERTS);
         if ($is_expert && $limit == 'inactif') {
             continue;
         }
 
-        $is_retired = UsersDAO::isUserInGroup($experts->field('user_id'), UsersDAO::GROUP_RETIRED_EXPERTS);
+        $is_retired = UsersGroup::isUserInGroup($experts->field('user_id'), UsersGroup::GROUP_RETIRED_EXPERTS);
         if ($is_retired && $limit == 'actif') {
             continue;
         }

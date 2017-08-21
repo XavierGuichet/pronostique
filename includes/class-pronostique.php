@@ -119,7 +119,7 @@ class Pronostique {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/widgets/tipster-stats.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/widgets/tipster-last-tips.php';
 
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'dao/users-dao.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'tools/users-group.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'tools/formatter.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'tools/calculator.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'tools/template-engine.php';

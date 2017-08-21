@@ -166,7 +166,7 @@ class Pronostique_Admin {
         $user_to_confirm = array();
         while( $users->fetch() ) {
             if (!empty($users->field('analyse'))) {
-                if (!UsersDAO::isUserConfirmed($users->field('id'))) {
+                if (!UsersGroup::isUserConfirmed($users->field('id'))) {
                     $user_to_confirm[] = array(
                         'id' => $users->field('id'),
                         'name' => $users->field('name'),
