@@ -297,7 +297,7 @@ class Pronostique_Public
                                 array(
                                     'select' => 't.ID, tips_result, author.ID as user_id, author.user_nicename as username',
                                     'limit' => 0,
-                                    'where' => 'tips_result > 0 AND is_expert != 1 AND date BETWEEN (CURDATE() - INTERVAL 365 DAY) AND NOW()',
+                                    'where' => 'tips_result > 0 AND is_expert != 1 AND is_vip != 1 AND date BETWEEN (CURDATE() - INTERVAL 365 DAY) AND NOW()',
                                     'orderby' => 'user_id DESC, date DESC',
                                 )
         );
