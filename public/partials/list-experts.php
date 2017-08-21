@@ -11,7 +11,7 @@ if ($experts->total() > 0) {
             continue;
         }
         $yield = Formatter::prefixSign(Calculator::Yield($experts->field('mises'), $experts->field('gain')));
-        $href_expert = '/bilan-expert/?id='.$experts->field('user_id');
+        $href_expert = '/tipser-stats/?id='.$experts->field('user_id');
         $profit = Formatter::prefixSign($experts->field('gain') ? $experts->field('gain') : 0);
         $profit_class = Formatter::valeur2CSS($experts->field('gain'));
         if ($is_expert) {

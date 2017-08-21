@@ -261,7 +261,8 @@ class Pronostique_Public
                                          'limit' => 'all',
                                      ], $atts, $tag);
 
-        // TODO this should request directly only actif / all or inactif experts
+        // TODO: should get user of group expert
+        // then request stats
         $mises_sql = ' ROUND(SUM( IF(tips_result IN (1,2,3), mise, 0) ), 2) as mises';
         $gain_sql = ' ROUND(SUM( IF(tips_result = 1, (cote-1)*mise, IF(tips_result = 2, - mise, IF(tips_result = 3, 0, 0))) ), 2) as gain';
         $experts = pods('pronostique')->find(
