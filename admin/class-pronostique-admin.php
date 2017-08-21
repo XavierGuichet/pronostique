@@ -212,7 +212,7 @@ class Pronostique_Admin {
         $users = pods( 'user' )->find($search_params);
         $user_to_confirm = array();
         while( $users->fetch() ) {
-            if (!empty($users->field('analyse'))) {
+            if ($users->field('analyse') != "") {
                 if (!UsersGroup::isUserConfirmed($users->field('id'))) {
                     $user_to_confirm[] = array(
                         'id' => $users->field('id'),

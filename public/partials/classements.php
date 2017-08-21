@@ -18,7 +18,7 @@ while ($row->fetch()) {
         <td style="width:70%;">
             <a class="none" href="/tipser-stats/?&id=<?=$row->display('author.ID')?>"><?=$row->display('author.user_nicename')?></a>
         </td>
-        <td style="width:20%;"><?=Formatter::prefixSign($row->display('Gain'))?></td>
+        <td style="width:20%;"><?=TipsFormatter::prefixSign($row->display('Gain'))?></td>
     </tr>
 <?php
 }

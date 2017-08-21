@@ -1,6 +1,6 @@
 <?php
 
-class Formatter {
+class TipsFormatter {
   static function formatCurrency($val, $unit = 'unités', $is_colored = false) {
     $prefix = $val >= 0 ? ($val > 0 ? '+' : '') : '-';
     $absval = abs($val);

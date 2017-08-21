@@ -62,7 +62,7 @@ class TipsterStats_Widget extends WP_Widget {
             $month_profit = $user_month_profit->field('gain');
         }
 
-        $yield = Formatter::prefixSign(Calculator::Yield($stats->field('mises'), $stats->field('gain')));
+        $yield = TipsFormatter::prefixSign(Calculator::Yield($stats->field('mises'), $stats->field('gain')));
 
         $tpl_params = array(
             'before_widget' => $args['before_widget'],

@@ -43,12 +43,12 @@ foreach($tips as $tips) {
 ?>
 <tr class="<?php echo ($tips->is_vip ? 'tips_vip' : '')?>">
     <?=($display_columns['date'] ? '<td class="date2" title="'.date_i18n("j/m/Y h:i", strtotime($tips->date)).'">'.date_i18n("j/m", strtotime($tips->date)).'</td>' : '')?>
-    <?=($display_columns['icon'] ? '<td class="resultat2"> <i class="fa '.Formatter::resultat2str($tips->tips_result).'" aria-hidden="true"></i> </td>' : '')?>
+    <?=($display_columns['icon'] ? '<td class="resultat2"> <i class="fa '.TipsFormatter::resultat2str($tips->tips_result).'" aria-hidden="true"></i> </td>' : '')?>
     <?=($display_columns['match'] ? ' <td class="match2"> <strong> <a class="simplelink" href="'.$link.'">'.stripslashes($tips->name).'</a> '.$comments.'</strong> </td>' : '')?>
     <?=($display_columns['sport'] ? '<td class="sport2">'.$tips->sport.'</td>' : '')?>
     <?=($display_columns['pari'] ? '<td class="pari2" title="'.$tips->pari.'">'.$pari.'</td>' : '')?>
     <?=($display_columns['resultat'] ? '<td>'.$tips->match_result.'</td>' : '')?>
-    <?=($display_columns['mise'] ? '<td class="mise2"><div class="mise '.Formatter::getMiseColorClass($tips->mise).'">'.$tips->mise.'</div></td>' : '')?>
+    <?=($display_columns['mise'] ? '<td class="mise2"><div class="mise '.TipsFormatter::getMiseColorClass($tips->mise).'">'.$tips->mise.'</div></td>' : '')?>
     <?=($display_columns['tipster'] ? '<td><a href="/tipser-stats/?id='.$tips->tipster_id.'">'.$tips->tipster_nicename.'</a></td>' : '')?>
     <?=($display_columns['cote'] ? '<td class="couleurcote">'.$tips->cote.'</td>' : '')?>
     <?=($display_columns['profit'] ? '<th class="gain2">'.Calculator::Gain($tips->tips_result,$tips->mise,$tips->cote).'</th>' : '')?>
@@ -56,12 +56,12 @@ foreach($tips as $tips) {
 <?php } else { ?>
     <tr class="hidden_tips">
         <?=($display_columns['date'] ? '<td class="date2">'.date_i18n("j/m", strtotime($tips->date)).'</td>' : '')?>
-        <?=($display_columns['icon'] ? '<td class="resultat2"> <i class="fa '.Formatter::resultat2str($tips->tips_result).'" aria-hidden="true"></i> </td>' : '')?>
+        <?=($display_columns['icon'] ? '<td class="resultat2"> <i class="fa '.TipsFormatter::resultat2str($tips->tips_result).'" aria-hidden="true"></i> </td>' : '')?>
         <?=($display_columns['match'] ? '<td class="match2"> <strong> <a class="simplelink" href="/vip/">Rejoignez le VIP pour accéder à ce pari</a> </strong> </td>' : '')?>
         <?=($display_columns['sport'] ? '<td class="sport2">'.$tips->sport.'</td>' : '')?>
         <?=($display_columns['pari'] ? '<td class=""><i class="fa fa-lock" aria-hidden="true"></i></td>' : '')?>
         <?=($display_columns['resultat'] ? '<td class=""></td>' : '')?>
-        <?=($display_columns['mise'] ? '<td class="mise2"><div class="mise '.Formatter::getMiseColorClass($tips->mise).'">'.$tips->mise.'</div></td>' : '')?>
+        <?=($display_columns['mise'] ? '<td class="mise2"><div class="mise '.TipsFormatter::getMiseColorClass($tips->mise).'">'.$tips->mise.'</div></td>' : '')?>
         <?=($display_columns['tipster'] ? '<td><a href="/tipser-stats/?id='.$tips->tipster_id.'">'.$tips->tipster_nicename.'</a></td>' : '')?>
         <?=($display_columns['cote'] ? '<td class="couleurcote"><i class="fa fa-lock" aria-hidden="true"></i></td>' : '')?>
         <?=($display_columns['profit'] ? '<th class="gain2">'.Calculator::Gain($tips->tips_result,$tips->mise,$tips->cote).'</th>' : '')?>

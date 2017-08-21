@@ -23,7 +23,7 @@ while ( $tips->fetch() ) {
 ?>
     <tr>
         <td class="date2"><?=date_i18n("j/m", strtotime($tips->field('date')))?></td>
-        <td class="resultat2"><i class="fa <?=Formatter::resultat2str($tips->field('tips_result'))?>" aria-hidden="true"></i>
+        <td class="resultat2"><i class="fa <?=TipsFormatter::resultat2str($tips->field('tips_result'))?>" aria-hidden="true"></i>
 </td>
         <td class="match2">
             <strong>
@@ -35,7 +35,7 @@ while ( $tips->fetch() ) {
 <?php } else { ?>
     <tr>
         <td class="date2"><?=date_i18n("j/m", strtotime($tips->field('date')))?></td>
-        <td class="resultat2"><i class="fa <?=Formatter::resultat2str($tips->field('tips_result'))?>" aria-hidden="true"></i></td>
+        <td class="resultat2"><i class="fa <?=TipsFormatter::resultat2str($tips->field('tips_result'))?>" aria-hidden="true"></i></td>
         <td class="match2">
             <strong>
                 <a class="simplelink" href="/vip/">Rejoignez les VIPS pour accéder à ce pronostique</a>

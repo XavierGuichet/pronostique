@@ -94,7 +94,7 @@ class Pronostique_Public
     //######################
     //     SHORTCODE
     //######################
-    public static function sc_displayHistoryGraph($atts = [], $content = null, $tag = '')
+    public function sc_displayHistoryGraph($atts = array(), $content = null, $tag = '')
     {
         $params = $this->prepareParams($atts,$tag);
 
@@ -139,7 +139,7 @@ class Pronostique_Public
                               'graphdata' => $graphdata, ));
     }
 
-    public function sc_displayUserPerfSummary($atts = [], $content = null, $tag = '')
+    public function sc_displayUserPerfSummary($atts = array(), $content = null, $tag = '')
     {
         $params = $this->prepareParams($atts, $tag);
 
@@ -188,13 +188,13 @@ class Pronostique_Public
                                   'yield' => $yield ));
     }
 
-    public function sc_displayUserHistoryPagination($atts = [], $content = null, $tag = '')
+    public function sc_displayUserHistoryPagination($atts = array(), $content = null, $tag = '')
     {
         $atts = array_change_key_case((array) $atts, CASE_LOWER);
-        $params = shortcode_atts([
+        $params = shortcode_atts(array(
                      'user_id' => '',
                      'currentmonth' => date('M-y'),
-                 ], $atts, $tag);
+                 ), $atts, $tag);
 
         $months_with_nb_pari = pods('pronostique')->find(array(
                             'select' => "DATE_FORMAT(date,'%Y-%m') as month, COUNT(*) as nb_tips",
@@ -223,7 +223,7 @@ class Pronostique_Public
                                    'index_current_month' => $index_current_month, ));
     }
 
-    public function sc_displayMenuPronostic($atts = [], $content = null, $tag = '')
+    public function sc_displayMenuPronostic($atts = array(), $content = null, $tag = '')
     {
         global $wpdb;
         $links = array();
@@ -254,12 +254,12 @@ class Pronostique_Public
                         array('links' => $links));
     }
 
-    public function sc_displayListExperts($atts = [], $content = null, $tag = '')
+    public function sc_displayListExperts($atts = array(), $content = null, $tag = '')
     {
         $atts = array_change_key_case((array) $atts, CASE_LOWER);
-        $params = shortcode_atts([
+        $params = shortcode_atts(array(
                                          'limit' => 'all',
-                                     ], $atts, $tag);
+                                     ), $atts, $tag);
 
         // TODO: should get user of group expert
         // then request stats
@@ -279,19 +279,19 @@ class Pronostique_Public
         return $this->templater->display('list-experts', $tpl_params);
     }
 
-    public function sc_getListTop($atts = [], $content = null, $tag = '')
+    public function sc_getListTop($atts = array(), $content = null, $tag = '')
     {
         $atts = array_change_key_case((array) $atts, CASE_LOWER);
-        $params = shortcode_atts([
+        $params = shortcode_atts(array(
                                          'titre' => '',
                                          'of_the_month' => true,
                                          'limit' => 10,
-                                     ], $atts, $tag);
+                                     ), $atts, $tag);
 
         return $this->getListTop($params['titre'], $params['of_the_month'], $params['limit']);
     }
 
-    public function sc_getHotStreakRanking($atts = [], $content = null, $tag = '')
+    public function sc_getHotStreakRanking($atts = array(), $content = null, $tag = '')
     {
         $tips = pods('pronostique')->find(
                                 array(
@@ -351,7 +351,7 @@ class Pronostique_Public
         return $this->templater->display('classements-hotstreak', $tpl_params);
     }
 
-    public function sc_displayPoolBox($atts = [], $content = null, $tag = '')
+    public function sc_displayPoolBox($atts = array(), $content = null, $tag = '')
     {
         $pronos = pods('pronostique')->find(
                     array(
@@ -363,7 +363,7 @@ class Pronostique_Public
         return $this->templater->display('poolbox', array('pronos' => $pronos));
     }
 
-    public function sc_displayStatsExperts($atts = [], $content = null, $tag = '')
+    public function sc_displayStatsExperts($atts = array(), $content = null, $tag = '')
     {
         $mises_sql = ' ROUND(SUM( IF(tips_result IN (1,2,3), mise, 0) ), 2) as mises';
         $gain_sql = ' ROUND(SUM( IF(tips_result = 1, (cote-1)*mise, IF(tips_result = 2, - mise, IF(tips_result = 3, 0, 0))) ), 2) as gain';
@@ -377,7 +377,7 @@ class Pronostique_Public
         return $this->templater->display('global-stats', array('stats' => $stats));
     }
 
-    public function sc_displayListParis($atts = [], $content = null, $tag = '')
+    public function sc_displayListParis($atts = array(), $content = null, $tag = '')
     {
         $params = $this->prepareParams($atts, $tag);
         $tips = $this->getPronostics($params['user_id'],
@@ -481,7 +481,7 @@ class Pronostique_Public
           ));
     }
 
-    public function sc_displayListParisEditable($atts = [], $content = null, $tag = '')
+    public function sc_displayListParisEditable($atts = array(), $content = null, $tag = '')
     {
         $params = $this->prepareParams($atts, $tag);
         $tips = $this->getPronostics($params['user_id'],
@@ -501,7 +501,7 @@ class Pronostique_Public
         return $this->templater->display('liste-paris-editable', array('tips' => $tips));
     }
 
-    public function sc_displayGlobalPerf($atts = [], $content = null, $tag = '')
+    public function sc_displayGlobalPerf($atts = array(), $content = null, $tag = '')
     {
         $params = $this->prepareParams($atts, $tag);
 
@@ -621,7 +621,7 @@ class Pronostique_Public
 
     private function prepareParams($atts, $tag) {
         $atts = array_change_key_case((array) $atts, CASE_LOWER);
-        $params = shortcode_atts([
+        $params = shortcode_atts(array(
                             'user_id' => null,
                             'sport' => null,
                             'excludesport' => null,
@@ -640,7 +640,7 @@ class Pronostique_Public
                             'columns' => null,
                             'use_poolbox' => false,
                             'reverse_order' => false
-                             ], $atts, $tag);
+                        ), $atts, $tag);
 
         return $params;
     }

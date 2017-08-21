@@ -22,7 +22,7 @@ foreach($row as $user_stat) {
         <td style="width:70%;">
             <?=$user_stat['yield']?>%
         </td>
-        <td style="width:20%;"><?=Formatter::prefixSign($user_stat['gain'])?></td>
+        <td style="width:20%;"><?=TipsFormatter::prefixSign($user_stat['gain'])?></td>
     </tr>
 <?php
 }

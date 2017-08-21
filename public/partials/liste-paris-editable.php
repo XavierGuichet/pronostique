@@ -31,7 +31,7 @@ while ( $tips->fetch() ) {
         <td class="sport2"><?=$tips->display('sport')?></td>
         <td><?=$tips->field('pari')?></td>
         <td class="mise2">
-            <div class="mise <?=Formatter::getMiseColorClass($tips->field('mise'))?>"><?=$tips->field('mise')?></div>
+            <div class="mise <?=TipsFormatter::getMiseColorClass($tips->field('mise'))?>"><?=$tips->field('mise')?></div>
         </td>
         <td class="couleurcote"><?=$tips->display('cote')?></td>
         <td class="action2">

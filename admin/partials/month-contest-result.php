@@ -51,7 +51,7 @@ while ($row->fetch()) {
         </td>
         <td style="width:25%;"><?=$row->display('V')?> - <?=$row->display('P')?> - <?=$row->display('N')?></td>
         <td style="width:10%;"><?=$row->display('nb_tips')?></td>
-        <td style="width:15%;"><?=Formatter::prefixSign($row->display('Gain'))?></td>
+        <td style="width:15%;"><?=TipsFormatter::prefixSign($row->display('Gain'))?></td>
     </tr>
 <?php
 }
@@ -73,7 +73,7 @@ while ($row->fetch()) {
         </td>
         <td style="width:25%;"><?=$row->display('V')?> - <?=$row->display('P')?> - <?=$row->display('N')?></td>
         <td style="width:10%;"><?=$row->display('nb_tips')?></td>
-        <td style="width:15%;"><?=Formatter::prefixSign($row->display('Gain'))?></td>
+        <td style="width:15%;"><?=TipsFormatter::prefixSign($row->display('Gain'))?></td>
     </tr>
 <?php
 }
