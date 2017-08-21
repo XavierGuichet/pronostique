@@ -143,7 +143,7 @@ class Pronostique_Admin {
         $pronos = pods('pronostique')->find(
             array(
                 'select' => $VPNA_sql.', ROUND(SUM( IF(tips_result = 1, (cote-1)*mise, IF(tips_result = 2, - mise, IF(tips_result = 3, 0, 0))) ), 2) AS Gain, COUNT(t.id) as nb_tips, t.*',
-                'where' => 'tips_result > 0 AND is_expert = 0'.$cond_month,
+                'where' => 'tips_result > 0 AND is_expert = 0 AND is_vip = 0 '.$cond_month,
                 'limit' => -1,
                 'orderby' => 'Gain Desc',
                 'groupby' => 'author.id',
