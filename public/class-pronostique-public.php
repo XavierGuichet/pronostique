@@ -405,7 +405,11 @@ class Pronostique_Public
         $more_tips = false;
         if ($params['with_result'] == 0 && $params['addxwithresult'] != null) {
             if ($params['addxwithresult'] == "odd") {
-                $params['addxwithresult'] = count($tips) % 2;
+                if(count($tips) >= 1) {
+                    $params['addxwithresult'] = count($tips) % 2;
+                } else {
+                    $params['addxwithresult'] = 2;
+                }
             }
             if($params['addxwithresult'] > 0) {
             $more_tips = $this->getPronostics($params['user_id'],
