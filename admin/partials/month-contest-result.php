@@ -60,9 +60,9 @@ while ($row->fetch()) {
 $i = 0;
 $row->reset();
 while ($row->fetch()) {
-    // if($row->field('nb_tips') >= 9) {
-    //     continue;
-    // }
+    if($row->field('nb_tips') >= 9) {
+        continue;
+    }
     ?>
     <tr>
         <td class="center" style="width:10%;">
