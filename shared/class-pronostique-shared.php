@@ -56,10 +56,11 @@ class Pronostique_Shared
         $comm_status = $post->comment_status;
         $post_type = $post->post_type;
         $post_id = (int) $post->ID;
-        $open = ($post_type == 'page') ? true : $open;
         $open = ($comm_status == 'open') ? true : $open;
         $open = is_front_page() ? false : $open;
+        $open = ($post_type == 'page') ? false : $open;
         $open = ($post_id == 11557 || $post_id == 19093 || 28900) ? false : $open;
+        $open = ($post_type == 'prono-post') ? true : $open;
 
         return $open;
     }
