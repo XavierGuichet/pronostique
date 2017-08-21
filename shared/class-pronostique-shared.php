@@ -175,6 +175,10 @@ class Pronostique_Shared
             $added_categories[] = (int) get_option("prono_expert_default_category", 0);
             $remove_categories[] = (int) get_option("prono_vip_default_category", 0);
         }
+        else {
+            $remove_categories[] = (int) get_option("prono_expert_default_category", 0);
+            $remove_categories[] = (int) get_option("prono_vip_default_category", 0);
+        }
         $new_categories = array_merge($current_cat_ids, $added_categories);
         $new_categories = array_diff($new_categories, $remove_categories);
         $new_categories = array_unique($new_categories);
