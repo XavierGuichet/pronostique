@@ -268,7 +268,7 @@ class Pronostique_Public
         $experts = pods('pronostique')->find(
                         array(
                             'select' => $mises_sql.','.$gain_sql.', author.ID as user_id, author.user_nicename as username',
-                            'where' => 'is_expert = 1',
+                            'limit' => -1,
                             'groupby' => 'author.ID',
                             'orderby' => 'date DESC'
                         ));
