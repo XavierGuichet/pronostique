@@ -128,21 +128,16 @@ class Pronostique_Admin {
     }
 
     public function printMonthContestResult() {
-        $formnonce = function_exists('wp_nonce_field') ? wp_nonce_field('change-month') : '';
-        $formaction = esc_attr($_SERVER['REQUEST_URI']);
         $month = date('n');
         $year = date('Y');
 
         if (isset($_POST['change_month'])) {
-            var_dump("posted");
             check_admin_referer('change-month');
             $month = (int) $_POST['month'];
             $year = (int) $_POST['year'];
         }
-
-        $selected_month = date('F Y',strtotime($year."-".$month."-01"));
-
         $cond_month = ' AND MONTH(date) = '.$month.' AND YEAR(date) = '.$year.' ';
+
 
         $VPNA_sql = " SUM(IF(tips_result = 1,1,0)) AS 'V', SUM(IF(tips_result = 3,1,0)) AS 'N', SUM(IF(tips_result = 2,1,0)) AS 'P', SUM(IF(tips_result = 0,1,0)) AS 'A'";
         $pronos = pods('pronostique')->find(
@@ -155,6 +150,9 @@ class Pronostique_Admin {
             )
             );
 
+        $selected_month = date('F Y',strtotime($year."-".$month."-01"));
+        $formnonce = function_exists('wp_nonce_field') ? wp_nonce_field('change-month') : '';
+        $formaction = esc_attr($_SERVER['REQUEST_URI']);
         $entetes = '<tr><th>&nbsp;</th> <th>Pseudo</th> <th>V - P -N</th> <th>Nb Tips</th><th>Profit</th></tr>';
         $tpl_params = array('titre' => 'resultat du concours',
                             'entetes' => $entetes,

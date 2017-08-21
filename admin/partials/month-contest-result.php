@@ -39,11 +39,33 @@ while ($row->fetch()) {
     if($row->field('nb_tips') < 10) {
         continue;
     }
+    $color = $i < 10 ? 'rgb(46,176,58)' : 'rgb(247,180,0)';
     ++$i;
-    $color = $i <= 10 ? 'rgb(46,176,58)' : 'rgb(247,180,0)'; ?>
+    ?>
     <tr>
         <td class="center" style="width:10%;">
             <div class="mise" style="background-color:<?=$color?>;"><?=$i?></div>
+        </td>
+        <td style="width:50%;">
+            <a class="none" href="/tipser-stats/?&id=<?=$row->display('author.ID')?>"><?=$row->display('author.user_nicename')?></a>
+        </td>
+        <td style="width:25%;"><?=$row->display('V')?> - <?=$row->display('P')?> - <?=$row->display('N')?></td>
+        <td style="width:10%;"><?=$row->display('nb_tips')?></td>
+        <td style="width:15%;"><?=Formatter::prefixSign($row->display('Gain'))?></td>
+    </tr>
+<?php
+}
+?>
+<?php
+$i = 0;
+while ($row->fetch()) {
+    if($row->field('nb_tips') >= 9) {
+        continue;
+    }
+    ?>
+    <tr>
+        <td class="center" style="width:10%;">
+            <div class="mise" style="background-color: grey;">-</div>
         </td>
         <td style="width:50%;">
             <a class="none" href="/tipser-stats/?&id=<?=$row->display('author.ID')?>"><?=$row->display('author.user_nicename')?></a>
