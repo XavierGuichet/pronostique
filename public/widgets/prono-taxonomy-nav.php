@@ -60,7 +60,7 @@ class PronoTaxonomyNav_Widget extends WP_Widget {
 
         $tpl_params = array(
                             'before_widget' => $args['before_widget'],
-                            'widget_title' => $widget_title,
+                            'widget_title' => '',
                             'taxonomies_by_sport' => $taxonomies_by_sport,
                             'after_widget' => $args['after_widget'] );
 
