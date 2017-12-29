@@ -34,6 +34,8 @@ class Pronostique_Public
 
     private $templater;
 
+    private $odd_offset_modifier;
+
 /**
  * Initialize the class and set its properties.
  *
@@ -47,7 +49,7 @@ class Pronostique_Public
     {
         $this->plugin_name = '';
         $this->version = '';
-
+        $this->odd_offset_modifier = 0;
         $this->templater = new TemplateEngine(__DIR__);
     }
 
@@ -62,9 +64,14 @@ class Pronostique_Public
     /**
      * Register the JavaScript for the public-facing side of the site.
      */
+     // NOTE : added data localization to enable/disabled select
     public function enqueue_scripts()
     {
-        wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__).'js/pronostique-public.js', array('jquery'), $this->version, false);
+        wp_register_script($this->plugin_name, plugin_dir_url(__FILE__).'js/pronostique-public.js', array('jquery'), $this->version, true);
+
+        $select_table = $this->getCompetionRelationship();
+        wp_localize_script($this->plugin_name, 'php_vars', $select_table );
+        wp_enqueue_script($this->plugin_name);
     }
 
     public function register_widgets()
@@ -73,6 +80,7 @@ class Pronostique_Public
         register_widget('TopTipster_Widget');
         register_widget('TopVip_Widget');
         register_widget('TipsterLastTips_Widget');
+        register_widget('PronoTaxonomyNav_Widget');
     }
 
     public function register_shortcodes()
@@ -91,6 +99,42 @@ class Pronostique_Public
         add_shortcode('global-perf', array($this, 'sc_displayGlobalPerf'));
     }
 
+    public function hide_vip_post( $query ) {
+        $post_types = $query->get('post_type');
+        if(is_array($post_types) && ( in_array('topic',$post_types) || in_array('reply',$post_types))) {
+            return $query;
+        }
+        $vip_cat_id = (int) get_option("prono_vip_default_category", 0);
+        if(is_blog_admin()) {return;}
+
+        if( ($query->is_archive() || $query->is_search()) && empty( $query->query_vars['suppress_filters'] ) ) {
+            if(!is_user_logged_in() || !UsersGroup::isUserInGroup(get_current_user_id(),UsersGroup::GROUP_ADHERENTS)) {
+                $tips = $this->getPronostics(null,
+                                             null, //sport
+                                             null, //exclude_sport
+                                             null, //competition
+                                             null, //month
+                                             null, //hidetips
+                                             null, //hideexpert
+                                             null, //hidevip
+                                             1, //viponly
+                                             0, //avec resultat
+                                             0, //offset
+                                             -1, //limit
+                                             null,
+                                             'DESC');
+                $hide_post = array();
+                if($tips->total() > 0) {
+                    while( $tips->fetch() ) {
+                        $hide_post[] = $tips->field('post_id');
+                    }
+                    $query->set( 'post__not_in', $hide_post);
+                }
+            }
+        }
+        return $query;
+    }
+
     //######################
     //     SHORTCODE
     //######################
@@ -101,6 +145,7 @@ class Pronostique_Public
         $tips = $this->getPronostics($params['user_id'],
                                      null, //sport
                                      null, //exclude_sport
+                                     null, // competition
                                      null, //month
                                      $params['hidetips'], //hidetips
                                      $params['hideexpert'], //hideexpert
@@ -237,16 +282,16 @@ class Pronostique_Public
                 $links[] = array('title' => 'Mes statistiques',
                                  'href' => '/tipser-stats/?id='.$user_id, );
                 $links[] = array('title' => 'Ajouter un pronostic',
-                                 'href' => '/formulaire-pronostics', );
+                                 'href' => '/formulaire-pronostics/', );
             } else {
                 $links[] = array('title' => 'S\'enregistrer comme tipster',
-                                 'href' => '/formulaire-tipseur', );
+                                 'href' => '/formulaire-tipseur/', );
             }
             if ($est_expert) {
                 $links[] = array('title' => 'Ajouter un prono. expert',
-                                 'href' => '/formulaire-experts', );
+                                 'href' => '/formulaire-experts/', );
                 $links[] = array('title' => 'Corriger un pronostic',
-                                 'href' => '/my-pronostics', );
+                                 'href' => '/my-pronostics/', );
             }
         }
 
@@ -383,6 +428,7 @@ class Pronostique_Public
         $tips = $this->getPronostics($params['user_id'],
                                      $params['sport'],
                                      $params['excludesport'],
+                                     $params['competition'],
                                      $params['month'],
                                      $params['hidetips'],
                                      $params['hideexpert'],
@@ -405,23 +451,26 @@ class Pronostique_Public
         $more_tips = false;
         if ($params['with_result'] == 0 && $params['addxwithresult'] != null) {
             if ($params['addxwithresult'] == "odd") {
+                $params['offset'] = $this->odd_offset_modifier;
                 if(count($tips) >= 1) {
                     $params['addxwithresult'] = count($tips) % 2;
                 } else {
                     $params['addxwithresult'] = 2;
                 }
+                $this->odd_offset_modifier += $params['addxwithresult'];
             }
             if($params['addxwithresult'] > 0) {
             $more_tips = $this->getPronostics($params['user_id'],
                                          $params['sport'],
                                          $params['excludesport'],
+                                         $params['competition'],
                                          $params['month'],
                                          $params['hidetips'],
                                          $params['hideexpert'],
                                          $params['hidevip'],
                                          $params['viponly'],
                                          1,
-                                         0,
+                                         $params['offset'],
                                          $params['addxwithresult'],
                                          $params['onlycomming'],
                                          'DESC');
@@ -448,6 +497,7 @@ class Pronostique_Public
                         'icon' => true,
                         'match' => true,
                         'sport' => true,
+                        'competition' => true,
                         'pari' => true,
                         'resultat' => true,
                         'mise' => true,
@@ -487,6 +537,7 @@ class Pronostique_Public
         $tips = $this->getPronostics($params['user_id'],
                                      $params['sport'],
                                      $params['excludesport'],
+                                     $params['competition'],
                                      $params['month'],
                                      null,
                                      null,
@@ -556,10 +607,10 @@ class Pronostique_Public
         return $this->templater->display('classements', $tpl_params);
     }
 
-    public function getPronostics($user_id = null, $sport = null, $exclude_sport = null, $month = null, $hidetips = null, $hideexpert = null, $hidevip = null, $viponly = null, $with_result = null, $offset = 0, $limit = null, $onlycomming = null, $sort_order = 'ASC')
+    public function getPronostics($user_id = null, $sport = null, $exclude_sport = null, $competition = null, $month = null, $hidetips = null, $hideexpert = null, $hidevip = null, $viponly = null, $with_result = null, $offset = 0, $limit = null, $onlycomming = null, $sort_order = 'ASC')
     {
         $params = array(
-            'select' => ' `t`.*, post.ID as post_id, author.id as tipster_id, sport.name as sport, author.user_nicename as tipster_nicename, miniature.id as image_id',
+            'select' => ' `t`.*, post.ID as post_id, author.id as tipster_id, sport.name as sport, competition.name as competition, author.user_nicename as tipster_nicename, miniature.id as image_id',
             'offset' => $offset,
             'orderby' => 'date '.$sort_order,
             'where' => '1 ',
@@ -576,6 +627,9 @@ class Pronostique_Public
         }
         if ($exclude_sport != null) {
             $params['where'] .= " AND sport.name != '".$exclude_sport."'";
+        }
+        if ($competition != null) {
+            $params['where'] .= " AND competition.slug = '".$competition."'";
         }
         if ($month != null) {
             $params['where'] .= " AND date LIKE '%".$month."%'";
@@ -619,12 +673,34 @@ class Pronostique_Public
         return $all_tips;
     }
 
+    // NOTE : new function
+    private function getCompetionRelationship() {
+        $competition_pod = pods('competition')->find();
+        $competitionRelationship = array();
+        if($competition_pod->total() > 0) {
+            while( $competition_pod->fetch() ) {
+                $competition_id = $competition_pod->field('id');
+                $sport_id = $competition_pod->field('sport.term_id');
+                $country_id = $competition_pod->field('country.term_id');
+                if(!isset($competitionRelationship[$sport_id])) {
+                    $competitionRelationship[$sport_id] = array();
+                }
+                if(!isset($competitionRelationship[$sport_id][$country_id])) {
+                    $competitionRelationship[$sport_id][$country_id] = array();
+                }
+                array_push($competitionRelationship[$sport_id][$country_id], $competition_id);
+            }
+        }
+        return $competitionRelationship;
+    }
+
     private function prepareParams($atts, $tag) {
         $atts = array_change_key_case((array) $atts, CASE_LOWER);
         $params = shortcode_atts(array(
                             'user_id' => null,
                             'sport' => null,
                             'excludesport' => null,
+                            'competition' => null,
                             'month' => null,
                             'viponly' => 0,
                             'hidetips' => null,

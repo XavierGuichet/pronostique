@@ -1,4 +1,7 @@
 <?php
+// echo "<pre>";
+// var_dump(get_post_type_object('prono-post'));
+// echo "</pre>";
 $MAX_ANALYSE = 195; // en caractères
 foreach($tips as $tip) {
     $match = mb_strimwidth(stripslashes($tip->name), 0, 45, '...');

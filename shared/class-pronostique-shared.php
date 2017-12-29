@@ -56,12 +56,54 @@ class Pronostique_Shared
         $comm_status = $post->comment_status;
         $post_type = $post->post_type;
         $post_id = (int) $post->ID;
+        $open = ($post_type == 'page') ? $open : $open;
         $open = ($comm_status == 'open') ? true : $open;
         $open = is_front_page() ? false : $open;
-        $open = ($post_type == 'page') ? false : $open;
         $open = ($post_id == 11557 || $post_id == 19093 || $post_id == 28900) ? false : $open;
-        
         return $open;
+    }
+
+    // NOTE : New code for permalink
+    public function prono_rewrite_rule($rules) {
+        add_rewrite_rule('pronostic/([^/]+?)/([^/]+?)/list$', 'index.php?sport=$matches[1]&competition=$matches[2]', 'top');
+        add_rewrite_rule('pronostic/([^/]+?)/list$', 'index.php?sport=$matches[1]', 'top');
+        add_rewrite_rule('pronostic/([^/]+?)/list$', 'index.php?sport=$matches[1]', 'top');
+        add_rewrite_rule('pronostic/([^/]+?)/([^/]+?)$', 'index.php?sport=$matches[1]&prono-post=$matches[2]', 'top');
+        add_rewrite_rule('pronostic/([^/]+?)/([^/]+?)/([^/]+?)/$', 'index.php?sport=$matches[1]&competition=$matches[2]&prono-post=$matches[3]', 'top');
+    }
+
+
+    // NOTE : New code for permalink
+    public function tips_permalinks( $permalink, $post ) {
+        if($post->post_type === 'prono-post') {
+            $prono = get_post_meta($post->ID, 'pronostique', true);
+            $sport = pods( 'pronostique', $prono['id'])->field('sport.slug');
+            $sport = (empty($sport) ? 'divers' : $sport);
+            $competition = pods( 'pronostique', $prono['id'])->field('competition.slug');
+            $competition = (empty($competition) ? '' : $competition."/");
+            $permalink = str_replace( '%sport%', $sport, $permalink );
+            $permalink = str_replace( '%competition%/', $competition, $permalink );
+            $permalink = preg_replace( '/\/$/', '', $permalink );
+            return $permalink;
+        }
+        return $permalink;
+    }
+
+    // NOTE : New code for permalink
+    public function prono_term_permalink($permalink, $term ) {
+        if($term->taxonomy === 'sport') {
+            $permalink = str_replace( 'sport', 'pronostic', $permalink );
+            $permalink .= 'list';
+            return $permalink;
+        }
+        if($term->taxonomy === 'competition') {
+            $sport = pods( 'competition', $term->term_id)->field('sport.slug');
+            $replacement = 'pronostic/'.$sport;
+            $permalink = str_replace( 'competition', $replacement, $permalink );
+            $permalink .= 'list';
+            return $permalink;
+        }
+        return $permalink;
     }
 
     // Comment Meta
@@ -117,8 +159,9 @@ class Pronostique_Shared
      *  Associate the prono-post to pronostique and the the inverted relation
      */
     public function sync_post_with_prono($pieces, $is_new_item, $id) {
-        remove_filter('save_post', array($GLOBALS['scoper_admin_filters'], 'custom_taxonomies_helper'), 5, 2);
-        remove_filter('pods_api_post_save_pod_item_pronostique', array($this, 'sync_prono_with_post'), 5, 2);
+        $bool = remove_filter('save_post', array($GLOBALS['scoper_admin_filters'], 'custom_taxonomies_helper'), 5);
+        $bool = remove_filter('pods_api_post_save_pod_item_prono-post', array($this, 'sync_prono_with_post'));
+
         $post_id = false;
         $prono = pods('pronostique',$id);
 
@@ -128,19 +171,36 @@ class Pronostique_Shared
         if ($prono->field('post')) {
             $post_id = $prono->field('post.ID');
         }
+
         // when pronostique doesn't have a prono-post linked
         // create one and associate it
         if (!$post_id) {
+            if(isset($pieces[ 'fields' ][ 'name' ][ 'value' ])) {
+                $post_title = $pieces[ 'fields' ][ 'name' ][ 'value' ];
+            } else {
+                $post_title = $prono->field('name');
+            }
+            if(isset($pieces[ 'fields' ][ 'analyse' ][ 'value' ])) {
+                $post_content = $pieces[ 'fields' ][ 'analyse' ][ 'value' ];
+            } else {
+                $post_content = $prono->field('analyse');
+            }
+            if(isset($pieces[ 'fields' ][ 'author' ][ 'value' ])) {
+                $post_author = $pieces[ 'fields' ][ 'author' ][ 'value' ];
+            } else {
+                $post_author = $prono->field('author.ID');
+            }
+
             $date = date('Y-m-d H:i:s');
             if(strtotime($prono->field('date')) < strtotime( "2017-08-20")) {
                 $date = $prono->field('date');
             }
             $new_post = array(
-                'post_title' => $pieces[ 'fields' ][ 'name' ][ 'value' ],
-                'post_content' => $pieces[ 'fields' ][ 'analyse' ][ 'value' ],
+                'post_title' => $post_title,
+                'post_content' => $post_content,
                 'post_status' => 'publish',
                 'post_date' => $date,
-                'post_author' => $pieces[ 'fields' ][ 'author' ][ 'value' ],
+                'post_author' => $post_author,
                 'post_type' => 'prono-post',
                 'meta_input' => array('pronostique' => $id)
             );
@@ -159,8 +219,12 @@ class Pronostique_Shared
 
         // Synchronyse la taxonomy sport
         if (isset($pieces[ 'fields' ][ 'sport' ][ 'value' ])) {
-            wp_set_object_terms($post_id, intval($pieces[ 'fields' ][ 'sport' ][ 'value' ]), 'sport', false);
+            $bool = wp_set_object_terms($post_id, intval($pieces[ 'fields' ][ 'sport' ][ 'value' ]), 'sport', false);
+        } else {
+            wp_set_object_terms($post_id, intval($prono->field('sport.id')), 'sport', false);
         }
+
+        wp_update_post( array(  'ID' => $post_id,'meta_input' => array('pronostique' => $id)));
 
         // Synchronyse les categories Expert et VIP
         //recupère les categories courante
@@ -181,7 +245,7 @@ class Pronostique_Shared
             $remove_categories[] = (int) get_option("prono_vip_default_category", 0);
             $remove_categories[] = (int) get_option("prono_std_default_category", 0);
         }
-        else {
+        elseif($is_new_item || (isset($pieces[ 'fields' ][ 'is_vip' ][ 'value' ]) && isset($pieces[ 'fields' ][ 'is_expert' ][ 'value' ]))) {
             $added_categories[] = (int) get_option("prono_std_default_category", 0);
             $remove_categories[] = (int) get_option("prono_expert_default_category", 0);
             $remove_categories[] = (int) get_option("prono_vip_default_category", 0);
@@ -193,7 +257,7 @@ class Pronostique_Shared
     }
 
     public function sync_prono_with_post($pieces, $is_new_item, $post_id) {
-        remove_filter('pods_api_post_save_pod_item_prono-post', array($this, 'sync_post_with_prono'), 5, 2);
+        remove_filter('pods_api_post_save_pod_item_pronostique', array($this, 'sync_post_with_prono'));
         $prono_id = false;
         if(isset($pieces[ 'fields' ][ 'pronostique' ][ 'value' ])) {
             $prono_id = $pieces[ 'fields' ][ 'pronostique' ][ 'value' ];

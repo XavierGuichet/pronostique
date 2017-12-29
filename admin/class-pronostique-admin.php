@@ -180,7 +180,6 @@ class Pronostique_Admin {
         $id = intval( $_POST['ID'] );
         $tips_result = intval( $_POST['tips_result'] );
         $match_result = sanitize_text_field( $_POST['match_result'] );
-
         $errors = array();
         if(!$id) {
             $errors[] = "Erreur Id, contactez Xavier";
@@ -190,8 +189,13 @@ class Pronostique_Admin {
         }
         if(count($errors) == 0) {
             $prono = pods('pronostique',$id);
+            $bool = remove_filter('save_post', array($GLOBALS['scoper_admin_filters'], 'custom_taxonomies_helper'), 5);
             if(!$prono->save(array('tips_result' => $tips_result,'match_result' => $match_result))) {
                 $errors[] = "Pod erreur: impossible de sauvegarder";
+            }
+            if ($prono->field('post')) {
+                $post_id = $prono->field('post.ID');
+                wp_set_object_terms($post_id, intval($prono->field('sport.term_id')), 'sport', false);
             }
         }
         $success = (count($errors) == 0 ? 1 : 0);
@@ -235,7 +239,6 @@ class Pronostique_Admin {
         $table_tips_experts = $wpdb->prefix.'bmk_tips_experts';
         $formresult = null;
         $formaction = esc_attr($_SERVER['REQUEST_URI']);
-
         // TODO : keep in case of reset during migration
         // update_option( 'pronostique_migrate_last_id', '0' );
         // update_option( 'pronostique_migrate_expert_last_id', '0' );
@@ -243,13 +246,13 @@ class Pronostique_Admin {
         $expert_tips_last_imported_id = get_option( 'pronostique_migrate_expert_last_id', 0);
         if (isset($_POST['migrate_std_tips'])) {
             check_admin_referer('pronostics-migrate-tips');
-            $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips." t WHERE tips_ID > ".$std_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,10");
+            $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips." t WHERE tips_ID > ".$std_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,35");
             $std_tips_last_imported_id = $this->migrate_tips($all_tips, 0);
             update_option( 'pronostique_migrate_last_id', $std_tips_last_imported_id );
         }
         if (isset($_POST['migrate_expert_tips'])) {
             check_admin_referer('pronostics-migrate-tips');
-            $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips_experts." t WHERE tips_ID > ".$expert_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,25");
+            $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips_experts." t WHERE tips_ID > ".$expert_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,35");
             $expert_tips_last_imported_id = $this->migrate_tips($all_tips, 1);
             update_option( 'pronostique_migrate_expert_last_id', $expert_tips_last_imported_id );
         }
@@ -367,12 +370,15 @@ class Pronostique_Admin {
     //Transform linked post in prono-post
     //If there is no linked post class-pronostique-public sync_post_with_prono, will create one
     private function migrate_post($tips, $sport_id) {
+        $tags = wp_get_post_tags($tips->tips_post_id, array("fields" => "names"));
+        $tags_str = implode(',',$tags);
         $bool = wp_update_post( array(  'ID' => $tips->tips_post_id,
                                 'post_type' => 'prono-post',
                                 'post_title' => $tips->tips_match,
                                 'post_name' => sanitize_title($tips->tips_match), //reset slug
                                 'post_status' => 'publish',
                                 'tax_input' => array('sport' => $sport_id)) );
-        return $post_id;
+        wp_set_post_tags( $tips->tips_post_id, $tags_str, true );
+        return $tips->tips_post_id;
     }
 }

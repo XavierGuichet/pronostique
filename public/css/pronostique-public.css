@@ -216,7 +216,7 @@ BILAN EXPERT
 ################
 */
 .bilanexpert .hidden_tips .match2 a, .bilanexpert .tips_vip .match2 a, .bilan_expert_main .tips_vip .match2 a, .bilan_expert_main .hidden_tips .match2 a {
-    color: #c0eb16;
+    color: hsl(47, 61%, 63%);
 }
 .bilan_expert_top {}
 

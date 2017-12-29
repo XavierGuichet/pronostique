@@ -1,15 +1,16 @@
 <?php
 if ($experts->total() > 0) {
     while ($experts->fetch()) {
-        $is_expert = UsersGroup::isUserInGroup($experts->field('user_id'), UsersGroup::GROUP_EXPERTS);
+        $groups = UsersGroup::getUserGroups($experts->field('user_id'));
+        $is_expert = in_array(UsersGroup::GROUP_EXPERTS, $groups);
+        $is_retired = in_array(UsersGroup::GROUP_RETIRED_EXPERTS, $groups);
         if ($is_expert && $limit == 'inactif') {
             continue;
         }
-
-        $is_retired = UsersGroup::isUserInGroup($experts->field('user_id'), UsersGroup::GROUP_RETIRED_EXPERTS);
         if ($is_retired && $limit == 'actif') {
             continue;
         }
+
         $yield = TipsFormatter::prefixSign(Calculator::Yield($experts->field('mises'), $experts->field('gain')));
         $href_expert = '/tipser-stats/?id='.$experts->field('user_id');
         $profit = TipsFormatter::prefixSign($experts->field('gain') ? $experts->field('gain') : 0);
