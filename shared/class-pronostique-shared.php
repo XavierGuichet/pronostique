@@ -63,15 +63,29 @@ class Pronostique_Shared
         return $open;
     }
 
-    // NOTE : New code for permalink
-    public function prono_rewrite_rule($rules) {
-        add_rewrite_rule('pronostic/([^/]+?)/([^/]+?)/list$', 'index.php?sport=$matches[1]&competition=$matches[2]', 'top');
-        add_rewrite_rule('pronostic/([^/]+?)/list$', 'index.php?sport=$matches[1]', 'top');
-        add_rewrite_rule('pronostic/([^/]+?)/list$', 'index.php?sport=$matches[1]', 'top');
-        add_rewrite_rule('pronostic/([^/]+?)/([^/]+?)$', 'index.php?sport=$matches[1]&prono-post=$matches[2]', 'top');
-        add_rewrite_rule('pronostic/([^/]+?)/([^/]+?)/([^/]+?)/$', 'index.php?sport=$matches[1]&competition=$matches[2]&prono-post=$matches[3]', 'top');
+    // NOTE : test redirection post 404
+    public function handle_rewrite_conflit( $wp_query ) {
+        if(isset($wp_query->query_vars['competition']) && !isset($wp_query->query_vars['prono-post'])) {
+            $potential_conflit_slug = $wp_query->query_vars['competition'];
+            $term = get_term_by('slug', $potential_conflit_slug, 'competition' );
+            if(!$term) {
+                $wp_query->query_vars['prono-post'] = $potential_conflit_slug;
+                $wp_query->query_vars['post_type'] = 'prono-post';
+                $wp_query->query_vars['name'] = 'prono-post';
+                $wp_query->query_vars['page'] = $potential_conflit_slug;
+            }
+        }
+        return $wp_query;
     }
 
+    // NOTE : New code for permalink
+    public function prono_rewrite_rule($rules) {
+        add_rewrite_rule('pronostic/([^/]+?)/$', 'index.php?sport=$matches[1]', 'top');
+        add_rewrite_rule('pronostic/([^/]+?)/$', 'index.php?sport=$matches[1]', 'top');
+        add_rewrite_rule('pronostic/([^/]+?)/([^/]+?)/$', 'index.php?sport=$matches[1]&competition=$matches[2]', 'top');
+        // add_rewrite_rule('pronostic/([^/]+?)/([^/]+?)/$', 'index.php?sport=$matches[1]&prono-post=$matches[2]', 'top');
+        add_rewrite_rule('pronostic/([^/]+?)/([^/]+?)/([^/]+?)/$', 'index.php?sport=$matches[1]&competition=$matches[2]&prono-post=$matches[3]', 'top');
+    }
 
     // NOTE : New code for permalink
     public function tips_permalinks( $permalink, $post ) {
@@ -93,14 +107,12 @@ class Pronostique_Shared
     public function prono_term_permalink($permalink, $term ) {
         if($term->taxonomy === 'sport') {
             $permalink = str_replace( 'sport', 'pronostic', $permalink );
-            $permalink .= 'list';
             return $permalink;
         }
         if($term->taxonomy === 'competition') {
             $sport = pods( 'competition', $term->term_id)->field('sport.slug');
             $replacement = 'pronostic/'.$sport;
             $permalink = str_replace( 'competition', $replacement, $permalink );
-            $permalink .= 'list';
             return $permalink;
         }
         return $permalink;

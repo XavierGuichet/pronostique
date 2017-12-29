@@ -155,6 +155,8 @@ class Pronostique {
 	private function define_shared_hooks() {
 		$plugin_shared = new Pronostique_Shared( $this->get_plugin_name(), $this->get_version() );
 
+        $this->loader->add_action( 'parse_request', $plugin_shared, 'handle_rewrite_conflit' );
+        // $this->loader->add_action( 'parse_query', $plugin_shared, 'handle_rewrite_conflit_query' );
         $this->loader->add_action( 'save_post', $plugin_shared, 'update_comments_meta' );
         $this->loader->add_action( 'pods_api_post_save_pod_item_pronostique', $plugin_shared, 'sync_post_with_prono', 10, 3);
         $this->loader->add_action( 'pods_api_post_save_pod_item_prono-post', $plugin_shared, 'sync_prono_with_post', 10, 3);
