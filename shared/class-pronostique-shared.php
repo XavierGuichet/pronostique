@@ -223,6 +223,18 @@ class Pronostique_Shared
         } else {
             wp_set_object_terms($post_id, intval($prono->field('sport.id')), 'sport', false);
         }
+        // Synchronyse la taxonomy country
+        if (isset($pieces[ 'fields' ][ 'country' ][ 'value' ])) {
+            $bool = wp_set_object_terms($post_id, intval($pieces[ 'fields' ][ 'country' ][ 'value' ]), 'country', false);
+        } else {
+            wp_set_object_terms($post_id, intval($prono->field('country.id')), 'country', false);
+        }
+        // Synchronyse la taxonomy competition
+        if (isset($pieces[ 'fields' ][ 'competition' ][ 'value' ])) {
+            $bool = wp_set_object_terms($post_id, intval($pieces[ 'fields' ][ 'competition' ][ 'value' ]), 'competition', false);
+        } else {
+            wp_set_object_terms($post_id, intval($prono->field('competition.id')), 'competition', false);
+        }
 
         wp_update_post( array(  'ID' => $post_id,'meta_input' => array('pronostique' => $id)));
 
