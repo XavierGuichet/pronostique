@@ -71,6 +71,6 @@ foreach($tips as $tips) {
 </table>
 <?php
 } else {
-    echo '<p class="no_result">Aucun pronostique dans cette catégorie actuellement</p>';
+    echo '<p class="no_result">Aucun pronostic dans cette catégorie actuellement</p>';
 }
 ?>
