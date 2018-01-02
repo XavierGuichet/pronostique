@@ -122,7 +122,9 @@ class Pronostique {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'tools/users-group.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'tools/tips-formatter.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'tools/calculator.php';
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'tools/template-engine.php';
+        if(!class_exists(TemplateEngine)) {
+    		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'tools/template-engine.php';
+        }
 
 		$this->loader = new Pronostique_Loader();
 
