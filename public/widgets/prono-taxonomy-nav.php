@@ -52,7 +52,8 @@ class PronoTaxonomyNav_Widget extends WP_Widget {
             if(!$competitions->field('hide')) {
                 $taxonomy = array(
                     'name' => $competitions->display('name'),
-                    'permalink' => get_term_link((int) $competitions->display('id'))
+                    'permalink' => get_term_link((int) $competitions->display('id')),
+                    'country-iso' => $competitions->display('country.code_iso'),
                 );
                 $taxonomies_by_sport[$sport]['competitions'][] = $taxonomy;
             }

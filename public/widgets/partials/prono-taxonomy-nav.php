@@ -11,7 +11,9 @@ foreach($taxonomies_by_sport as $key => $sport_group) {
                 <?php
                 foreach($sport_group['competitions'] as $competition) {
                 ?>
-                    <li class="prono-tax-nav_sport-list_list_item"><a href="<?=$competition['permalink']?>"><?=$competition['name']?></a></li>
+                    <li class="prono-tax-nav_sport-list_list_item">
+                        <a href="<?=$competition['permalink']?>"><span class="flag-icon flag-icon-<?=$competition['country-iso']?>"></span> <?=$competition['name']?></a>
+                    </li>
                 <?php } ?>
             </ul>
         <?php } ?>
