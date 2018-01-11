@@ -91,14 +91,16 @@ class Pronostique_Shared
     public function tips_permalinks( $permalink, $post ) {
         if($post->post_type === 'prono-post') {
             $prono = get_post_meta($post->ID, 'pronostique', true);
-            $sport = pods( 'pronostique', $prono['id'])->field('sport.slug');
-            $sport = (empty($sport) ? 'divers' : $sport);
-            $competition = pods( 'pronostique', $prono['id'])->field('competition.slug');
-            $competition = (empty($competition) ? '' : $competition."/");
-            $permalink = str_replace( '%sport%', $sport, $permalink );
-            $permalink = str_replace( '%competition%/', $competition, $permalink );
-            $permalink = preg_replace( '/\/$/', '', $permalink );
-            return $permalink;
+            if($prono) {
+                $sport = pods( 'pronostique', $prono['id'])->field('sport.slug');
+                $sport = (empty($sport) ? 'divers' : $sport);
+                $competition = pods( 'pronostique', $prono['id'])->field('competition.slug');
+                $competition = (empty($competition) ? '' : $competition."/");
+                $permalink = str_replace( '%sport%', $sport, $permalink );
+                $permalink = str_replace( '%competition%/', $competition, $permalink );
+                $permalink = preg_replace( '/\/$/', '', $permalink );
+                return $permalink;
+            }
         }
         return $permalink;
     }
