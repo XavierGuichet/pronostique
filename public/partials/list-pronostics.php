@@ -51,7 +51,7 @@ foreach($tips as $tips) {
     <?=($display_columns['mise'] ? '<td class="mise2"><div class="mise '.TipsFormatter::getMiseColorClass($tips->mise).'">'.$tips->mise.'</div></td>' : '')?>
     <?=($display_columns['tipster'] ? '<td><a href="/tipser-stats/?id='.$tips->tipster_id.'">'.$tips->tipster_nicename.'</a></td>' : '')?>
     <?=($display_columns['cote'] ? '<td class="couleurcote">'.$tips->cote.'</td>' : '')?>
-    <?=($display_columns['profit'] ? '<th class="gain2">'.Calculator::Gain($tips->tips_result,$tips->mise,$tips->cote).'</th>' : '')?>
+    <?=($display_columns['profit'] ? '<td class="gain2">'.Calculator::Gain($tips->tips_result,$tips->mise,$tips->cote).'</td>' : '')?>
 </tr>
 <?php } else { ?>
     <tr class="hidden_tips">
@@ -65,7 +65,7 @@ foreach($tips as $tips) {
         <?=($display_columns['mise'] ? '<td class="mise2"><div class="mise '.TipsFormatter::getMiseColorClass($tips->mise).'">'.$tips->mise.'</div></td>' : '')?>
         <?=($display_columns['tipster'] ? '<td><a href="/tipser-stats/?id='.$tips->tipster_id.'">'.$tips->tipster_nicename.'</a></td>' : '')?>
         <?=($display_columns['cote'] ? '<td class="couleurcote"><i class="fa fa-lock" aria-hidden="true"></i></td>' : '')?>
-        <?=($display_columns['profit'] ? '<th class="gain2">'.Calculator::Gain($tips->tips_result,$tips->mise,$tips->cote).'</th>' : '')?>
+        <?=($display_columns['profit'] ? '<td class="gain2">'.Calculator::Gain($tips->tips_result,$tips->mise,$tips->cote).'</td>' : '')?>
     </tr>
 <?php } } ?>
 </table>
