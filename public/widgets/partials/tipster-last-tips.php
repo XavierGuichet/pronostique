@@ -12,7 +12,7 @@ if ($tips->total() > 0) {
     </tr>
 <?php
 while ( $tips->fetch() ) {
-    $link = "/pronostique/".$tips->field('permalink');
+    $link = "/pronostics/".$tips->field('permalink');
     if($tips->field('post.ID') != 0) {
         $link = get_permalink($tips->field('post.ID'));
     }
@@ -38,7 +38,7 @@ while ( $tips->fetch() ) {
         <td class="resultat2"><i class="fa <?=TipsFormatter::resultat2str($tips->field('tips_result'))?>" aria-hidden="true"></i></td>
         <td class="match2">
             <strong>
-                <a class="simplelink" href="/vip/">Rejoignez les VIPS pour accéder à ce pronostique</a>
+                <a class="simplelink" href="/vip/">Rejoignez les VIPS pour accéder à ce pronostic</a>
             </strong>
         </td>
         <td class="couleurcote"><i class="fa fa-lock" aria-hidden="true"></i></td>
@@ -48,7 +48,7 @@ while ( $tips->fetch() ) {
 </table>
 <?php
 } else {
-    echo '<p class="no_result">Aucun pronostique pour ce tipster.</p>';
+    echo '<p class="no_result">Aucun pronostic pour ce tipster.</p>';
 }
 ?>
 <?=$after_widget?>

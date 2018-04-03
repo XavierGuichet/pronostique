@@ -13,7 +13,7 @@ if ($tips->total() > 0) {
     </tr>
 <?php
 while ( $tips->fetch() ) {
-    $link = "/pronostique/".$tips->field('permalink');
+    $link = "/pronostics/".$tips->field('permalink');
     if($tips->field('post.ID') != 0) {
         $link = get_permalink($tips->field('post.ID'));
     }

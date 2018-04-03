@@ -5,7 +5,7 @@
 $MAX_ANALYSE = 195; // en caractères
 foreach($tips as $tip) {
     $match = mb_strimwidth(stripslashes($tip->name), 0, 45, '...');
-    $link = '/pronostique/'.$tip->permalink;
+    $link = '/pronostics/'.$tip->permalink;
     if ($tip->post_id != 0) {
         $link = get_permalink($tip->post_id);
     } else {

@@ -41,7 +41,6 @@ class Pronostique_Admin {
 	private $version;
 
     private $templater;
-    private $xdkdcache;
 
 	/**
 	 * Initialize the class and set its properties.
@@ -54,8 +53,8 @@ class Pronostique_Admin {
 
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
-    $this->templater = new TemplateEngine(__DIR__);
-    $this->xdkdcache = new XdkdCache();
+
+        $this->templater = new TemplateEngine(__DIR__);
 	}
 
 	/**
@@ -234,8 +233,34 @@ class Pronostique_Admin {
 
     public function printPronosticsAdminPage()
     {
+        global $wpdb;
+        global $wp_query;
+        $table_tips = $wpdb->prefix.'bmk_tips';
+        $table_tips_experts = $wpdb->prefix.'bmk_tips_experts';
         $formresult = null;
         $formaction = esc_attr($_SERVER['REQUEST_URI']);
+        // TODO : keep in case of reset during migration
+        // update_option( 'pronostique_migrate_last_id', '0' );
+        // update_option( 'pronostique_migrate_expert_last_id', '0' );
+        $std_tips_last_imported_id = get_option( 'pronostique_migrate_last_id', 0);
+        $expert_tips_last_imported_id = get_option( 'pronostique_migrate_expert_last_id', 0);
+        if (isset($_POST['migrate_std_tips'])) {
+            check_admin_referer('pronostics-migrate-tips');
+            $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips." t WHERE tips_ID > ".$std_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,35");
+            $std_tips_last_imported_id = $this->migrate_tips($all_tips, 0);
+            update_option( 'pronostique_migrate_last_id', $std_tips_last_imported_id );
+        }
+        if (isset($_POST['migrate_expert_tips'])) {
+            check_admin_referer('pronostics-migrate-tips');
+            $all_tips = $wpdb->get_results("SELECT * FROM ".$table_tips_experts." t WHERE tips_ID > ".$expert_tips_last_imported_id." ORDER BY tips_ID ASC LIMIT 0,35");
+            $expert_tips_last_imported_id = $this->migrate_tips($all_tips, 1);
+            update_option( 'pronostique_migrate_expert_last_id', $expert_tips_last_imported_id );
+        }
+        $count_std_tips_to_migrate = $wpdb->get_var("SELECT COUNT(*) FROM ".$table_tips." t WHERE tips_ID > ".$std_tips_last_imported_id);
+        $count_expert_tips_to_migrate = $wpdb->get_var("SELECT COUNT(*) FROM ".$table_tips_experts." t WHERE tips_ID > ".$expert_tips_last_imported_id);
+        $formnonce_migrate = function_exists('wp_nonce_field') ? wp_nonce_field('pronostics-migrate-tips') : '';
+        $formsubmit_migrate = __('Migrer les données', 'pronostics');
+
 
         if (isset($_POST['set_default_cat'])) {
             check_admin_referer('pronostics-set-default-cat');
@@ -245,23 +270,8 @@ class Pronostique_Admin {
             update_option( "prono_vip_default_category", $vip_cat );
             $std_cat = (int) $_POST['prono_std_default_cat'];
             update_option( "prono_std_default_category", $std_cat );
-						$formresult = true;
         }
-				if (isset($_POST['clear_cache'])) {
-            check_admin_referer('pronostics-cache-handling');
-						$formresult = $this->xdkdcache->clearCache();
-        }
-				if (isset($_POST['refresh_filter_cache'])) {
-            check_admin_referer('pronostics-cache-handling');
-						$formresult = PronoLib::getInstance()->refreshTaxonomiesFilterData();
-        }
-				if (isset($_POST['refresh_tops_cache'])) {
-            check_admin_referer('pronostics-cache-handling');
-						$formresult = PronoLib::getInstance()->refreshAllData();
-        }
-
         $formnonce_default_cat = function_exists('wp_nonce_field') ? wp_nonce_field('pronostics-set-default-cat') : '';
-        $formnonce_cache_handling = function_exists('wp_nonce_field') ? wp_nonce_field('pronostics-cache-handling') : '';
 
         $categories = get_categories(array('hide_empty' => 0));
         $prono_expert_cat = get_option("prono_expert_default_category", 0);
@@ -274,5 +284,101 @@ class Pronostique_Admin {
         ob_end_clean();
 
         echo $result;
+    }
+
+    private function migrate_tips($all_tips, $is_expert) {
+        // enleve le filtre de Role SCoper qui reset les custom taxonomy
+        remove_filter('save_post', array($GLOBALS['scoper_admin_filters'], 'custom_taxonomies_helper'), 5, 2);
+        $pods_bookmaker = pods('bookmaker')->find();
+        $bookmaker_ids = array();
+        while ( $pods_bookmaker->fetch() ) {
+            $bookmaker_ids[$pods_bookmaker->field('name')] = (int) $pods_bookmaker->field('id');
+        }
+
+        $sport_taxonomy = get_terms( 'sport',array(
+            'hide_empty' => false,
+        ) );
+        $sport_ids = array();
+        foreach($sport_taxonomy as $sport) {
+            $sport_ids[$sport->name] = (int) $sport->term_id;
+        }
+
+        $last_id = 0;
+        $pods_data = array();
+        foreach ($all_tips as $key => $tips) {
+            //Transforme les strings bookmaker en relation
+            $bookmaker_infos = explode(',',$tips->tips_bookmaker);
+            if (isset($bookmaker_ids[$bookmaker_infos[0]])) {
+                $bookmaker_id = $bookmaker_ids[$bookmaker_infos[0]];
+            } else {
+                $bookmaker_id = null;
+            }
+
+            //Transforme les strings sport en relation
+            //Changement de titre du sport foot américain
+            if( $tips->tips_sport == "Foot Am") { $tips->tips_sport = "Foot Américain";}
+            $sport_id = $sport_ids[$tips->tips_sport];
+            if( !is_numeric($bookmaker_id)) {
+                $sport_id = null;
+            }
+
+            //transforme les champs date et heure (du match/evenement) en un unique champ
+            $date_match = $tips->tips_date." ".preg_replace('`h`',':',$tips->tips_heure).':00';
+
+            //prepare le champs code_poolbox
+            $code_poolbox = null;
+            if (isset($tips->tips_code_poolbox)) {
+                $code_poolbox = $tips->tips_code_poolbox;
+            }
+
+            $match_result = '';
+            if (isset($tips->tips_resultat_str)) {
+                $match_result = $tips->tips_resultat_str;
+            }
+
+            $post_id = '';
+            if ($tips->tips_post_id) {
+                $post_id = $this->migrate_post($tips, $sport_id);
+            }
+
+            $pods_data[] = array(
+                'name' => $tips->tips_match,
+                'sport' => $sport_id,
+                'pari' => $tips->tips_pari,
+                'cote' => $tips->tips_cote,
+                'mise' => $tips->tips_mise,
+                'bookmaker' => $bookmaker_id,
+                'date' => $date_match,
+                'code_poolbox' => $code_poolbox,
+                'analyse' => $tips->tips_analyse,
+                'tips_result' => $tips->tips_resultat,
+                'match_result' => $match_result,
+                'is_expert' => $is_expert,
+                'is_vip' => 0,
+                'post' => $post_id,
+                'created' => $tips->tips_created_at,
+                'author' => $tips->user_id
+            );
+            $last_id = $tips->tips_ID;
+        }
+
+        $api = pods_api( 'pronostique' );
+        $ids = $api->import( $pods_data, true );
+        return $last_id;
+    }
+
+    //Transform linked post in prono-post
+    //If there is no linked post class-pronostique-public sync_post_with_prono, will create one
+    private function migrate_post($tips, $sport_id) {
+        $tags = wp_get_post_tags($tips->tips_post_id, array("fields" => "names"));
+        $tags_str = implode(',',$tags);
+        $bool = wp_update_post( array(  'ID' => $tips->tips_post_id,
+                                'post_type' => 'prono-post',
+                                'post_title' => $tips->tips_match,
+                                'post_name' => sanitize_title($tips->tips_match), //reset slug
+                                'post_status' => 'publish',
+                                'tax_input' => array('sport' => $sport_id)) );
+        wp_set_post_tags( $tips->tips_post_id, $tags_str, true );
+        return $tips->tips_post_id;
     }
 }

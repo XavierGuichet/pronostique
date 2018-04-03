@@ -80,29 +80,11 @@ class Pronostique_Shared
 
     // NOTE : New code for permalink
     public function prono_rewrite_rule($rules) {
-        // Attachement
-            // sans competition
-            add_rewrite_rule('pronostic-attachment/[^/]+?/([^/]+?)/$', 'index.php?attachment=$matches[1]', 'bottom');
-            // avec competition
-            add_rewrite_rule('pronostic-attachment/[^/]+?/[^/]+?/([^/]+?)/$', 'index.php?attachment=$matches[1]', 'bottom');
-        // feed
-            // sans competition
-            add_rewrite_rule('pronostic/[^/]+/([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$',	'index.php?attachment=$matches[1]&feed=$matches[2]', 'top');
-            add_rewrite_rule('pronostic/[^/]+/([^/]+)/(feed|rdf|rss|rss2|atom)/?$',	'index.php?attachment=$matches[1]&feed=$matches[2]', 'top');
-            add_rewrite_rule('pronostic/[^/]+/([^/]+)/comment-page-([0-9]{1,})/?$',	'index.php?attachment=$matches[1]&cpage=$matches[2]', 'top');
-            add_rewrite_rule('pronostic/[^/]+/([^/]+)/embed/?$',	'index.php?attachment=$matches[1]&embed=true', 'top');
-            // avec competition
-            add_rewrite_rule('pronostic/[^/]+/([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$',	'index.php?attachment=$matches[1]&feed=$matches[2]', 'top');
-            add_rewrite_rule('pronostic/[^/]+/[^/]+/([^/]+)/(feed|rdf|rss|rss2|atom)/?$',	'index.php?attachment=$matches[1]&feed=$matches[2]', 'top');
-            add_rewrite_rule('pronostic/[^/]+/[^/]+/([^/]+)/comment-page-([0-9]{1,})/?$',	'index.php?attachment=$matches[1]&cpage=$matches[2]', 'top');
-            add_rewrite_rule('pronostic/[^/]+/[^/]+/([^/]+)/embed/?$',	'index.php?attachment=$matches[1]&embed=true', 'top');
-        // filter
-        add_rewrite_rule('pronostic/([^/]+?)/$', 'index.php?sport=$matches[1]', 'bottom');
-        // prono
-            // sans competition
-            add_rewrite_rule('pronostic/([^/]+?)/([^/]+?)/$', 'index.php?sport=$matches[1]&competition=$matches[2]', 'bottom');
-            // avec competition
-            add_rewrite_rule('pronostic/([^/]+?)/([^/]+?)/([^/]+?)/$', 'index.php?sport=$matches[1]&competition=$matches[2]&prono-post=$matches[3]', 'bottom');
+        add_rewrite_rule('pronostic/([^/]+?)/$', 'index.php?sport=$matches[1]', 'top');
+        add_rewrite_rule('pronostic/([^/]+?)/$', 'index.php?sport=$matches[1]', 'top');
+        add_rewrite_rule('pronostic/([^/]+?)/([^/]+?)/$', 'index.php?sport=$matches[1]&competition=$matches[2]', 'top');
+        // add_rewrite_rule('pronostic/([^/]+?)/([^/]+?)/$', 'index.php?sport=$matches[1]&prono-post=$matches[2]', 'top');
+        add_rewrite_rule('pronostic/([^/]+?)/([^/]+?)/([^/]+?)/$', 'index.php?sport=$matches[1]&competition=$matches[2]&prono-post=$matches[3]', 'top');
     }
 
     // NOTE : New code for permalink
@@ -110,29 +92,17 @@ class Pronostique_Shared
         if($post->post_type === 'prono-post') {
             $prono = get_post_meta($post->ID, 'pronostique', true);
             if($prono) {
-                $infos = pods( 'pronostique', array('select' => 'sport.slug as sport, competition.slug as competition', 'where' => 't.id = '.$prono['id']))->data();
-                if(!isset($infos[0])) {
-                    return $permalink;
-                }
-                $infos = $infos[0];
-                $sport = (is_null($infos->sport) ? 'divers' : $infos->sport);
-                $competition = (is_null($infos->competition) ? '' : $infos->competition."/");
+                $sport = pods( 'pronostique', $prono['id'])->field('sport.slug');
+                $sport = (empty($sport) ? 'divers' : $sport);
+                $competition = pods( 'pronostique', $prono['id'])->field('competition.slug');
+                $competition = (empty($competition) ? '' : $competition."/");
                 $permalink = str_replace( '%sport%', $sport, $permalink );
                 $permalink = str_replace( '%competition%/', $competition, $permalink );
+                $permalink = preg_replace( '/\/$/', '', $permalink );
                 return $permalink;
             }
-            $sport = (is_null($sport) ? 'divers' : $sport);
-            $competition = (is_null($competition) ? '' : $competition."/");
-            $permalink = str_replace( '%sport%', $sport, $permalink );
-            $permalink = str_replace( '%competition%/', $competition, $permalink );
-            return $permalink;
         }
         return $permalink;
-    }
-
-    public function fix_pod_attachement_link( $link, $post_id ){
-        $link = str_replace( 'pronostic/', 'pronostic-attachment/', $link );
-        return str_replace( 'formulaire-experts', 'pronostic-attachment', $link );
     }
 
     // NOTE : New code for permalink
@@ -142,10 +112,8 @@ class Pronostique_Shared
             return $permalink;
         }
         if($term->taxonomy === 'competition') {
-            $sport = pods( 'competition' )->find(array(
-                'select' => ' `t`.term_id, `sport`.slug as sport_slug',
-                'where' => '`t`.term_id = '.$term->term_id));
-            $replacement = 'pronostic/'.$sport->display('sport_slug');
+            $sport = pods( 'competition', $term->term_id)->field('sport.slug');
+            $replacement = 'pronostic/'.$sport;
             $permalink = str_replace( 'competition', $replacement, $permalink );
             return $permalink;
         }

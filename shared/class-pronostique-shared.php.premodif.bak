@@ -142,10 +142,8 @@ class Pronostique_Shared
             return $permalink;
         }
         if($term->taxonomy === 'competition') {
-            $sport = pods( 'competition' )->find(array(
-                'select' => ' `t`.term_id, `sport`.slug as sport_slug',
-                'where' => '`t`.term_id = '.$term->term_id));
-            $replacement = 'pronostic/'.$sport->display('sport_slug');
+            $sport = pods( 'competition', $term->term_id)->field('sport.slug');
+            $replacement = 'pronostic/'.$sport;
             $permalink = str_replace( 'competition', $replacement, $permalink );
             return $permalink;
         }

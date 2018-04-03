@@ -25,39 +25,7 @@ class PronoTaxonomyNav_Widget extends WP_Widget {
 	 * @param array $instance Saved values from database.
 	 */
 	public function widget( $args, $instance ) {
-        $sports = pods( 'sport' )->find(array('where' => 'count != 0', 'orderby' => 'tt.count DESC, name ASC'));
-        $taxonomies_by_sport = array();
-
-        while($sports->fetch() ) {
-            $sport = $sports->display('name');
-            if(!isset($taxonomies_by_sport[$sport]) && !$sports->field('hide')) {
-                $sport_term = get_term($sports->display('term_id'));
-                $taxonomies_by_sport[$sport] = array(
-                    'sport' => array(
-                        'name' => $sport_term->name,
-                        'permalink' => get_term_link((int) $sport_term->term_id)
-                    ),
-                    'competitions' => array()
-                );
-            }
-        }
-
-        $competitions = pods( 'competition' )->find(array('where' => '(count != 0 OR description != "")', 'orderby' => 'tt.count DESC, name ASC'));
-
-        while($competitions->fetch() ) {
-            $sport = $competitions->display('sport.name');
-            if(!isset($taxonomies_by_sport[$sport])) {
-                continue;
-            }
-            if(!$competitions->field('hide')) {
-                $taxonomy = array(
-                    'name' => $competitions->display('name'),
-                    'permalink' => get_term_link((int) $competitions->display('id')),
-                    'country-iso' => $competitions->display('country.code_iso'),
-                );
-                $taxonomies_by_sport[$sport]['competitions'][] = $taxonomy;
-            }
-        }
+        $taxonomies_by_sport = PronoLib::getInstance()->getTaxonomiesFilterData();
 
         $tpl_params = array(
                             'before_widget' => $args['before_widget'],

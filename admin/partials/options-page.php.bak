@@ -1,9 +1,9 @@
 <?php
 if ( $formresult !== null ) {
     if ($formresult) { ?>
-        <div class="updated"><p><strong>Réussite</strong></p></div>
+        <div class="updated"><p><strong>Mise à jour des paramètres réussie</strong></p></div>
     <?php } else { ?>
-        <div class="error"><p><strong>Echec</strong></p></div>
+        <div class="error"><p><strong>Echec de la mise à jour des paramètres</strong></p></div>
     <?php }
 }
 ?>
@@ -54,14 +54,44 @@ if ( $formresult !== null ) {
                 ?>
             </select>
         </div>
-        <input class="button button-primary button-large" type="submit" name="set_default_cat" value="Valider" />
+        <input type="submit" name="set_default_cat" value="Valider" />
     </form>
-    <h2>Gestion du cache du module pronostic</h2>
+    <h2>Migration des pronostique (tipseur) DB-Toolkit vers Pods</h2>
+    <p>Reste à migrer : <b><?=$count_std_tips_to_migrate?></b> tips</p>
     <form method="post" action="<?=$formaction?>">
-      <?=$formnonce_cache_handling?>
-      <input class="button button-primary button-large" type="submit" name="clear_cache" value="Vider le cache" />
-      <input class="button button-primary button-large" type="submit" name="refresh_filter_cache" value="Rafraichir le cache des filtres" />
-      <input class="button button-primary button-large" type="submit" name="refresh_tops_cache" value="Rafraichir tout les classements du cache" />
+        <?=$formnonce_migrate?>
+        <div class="submit">
+            <input type="submit" name="migrate_std_tips"  id="std_migrate" value="<?=$formsubmit_migrate?>" />
+        </div>
+    </form>
 
+    <h2>Migration des pronostique (expert) DB-Toolkit vers Pods</h2>
+    <p>Reste à migrer : <b><?=$count_expert_tips_to_migrate?></b> tips expert</p>
+    <form method="post" action="<?=$formaction?>">
+        <?=$formnonce_migrate?>
+        <div class="submit">
+            <input type="submit" name="migrate_expert_tips" id="expert_migrate" value="<?=$formsubmit_migrate?>" />
+        </div>
     </form>
 </div>
+<?php
+if( $count_expert_tips_to_migrate > 0 && false) {
+    ?>
+<script>
+(function( $ ) {
+    'use strict';
+    $(document).ready( function() {
+        $("#expert_migrate").trigger('click');
+    });
+})( jQuery );
+</script>
+<?php } elseif( $count_std_tips_to_migrate > 0 && false) {?>
+<script>
+(function( $ ) {
+    'use strict';
+    $(document).ready( function() {
+        $("#std_migrate").trigger('click');
+    });
+})( jQuery );
+</script>
+<?php } ?>

@@ -122,12 +122,15 @@ class Pronostique {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'tools/users-group.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'tools/tips-formatter.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'tools/calculator.php';
-        if(!class_exists('TemplateEngine')) {
-    		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'tools/template-engine.php';
-        }
+    if(!class_exists('TemplateEngine')) {
+			require_once plugin_dir_path( dirname( __FILE__ ) ) . 'tools/template-engine.php';
+    }
+    if(!class_exists('XdkdCache')) {
+			require_once plugin_dir_path( dirname( __FILE__ ) ) . 'tools/xdkd-cache.php';
+    }
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'tools/prono-lib.php';
 
 		$this->loader = new Pronostique_Loader();
-
 	}
 
 	/**
@@ -166,6 +169,7 @@ class Pronostique {
         $this->loader->add_filter( 'comments_open', $plugin_shared, 'prono_comment_open', 10, 2 );
         $this->loader->add_filter( 'term_link', $plugin_shared, 'prono_term_permalink', 10, 2 ); //TODO New code for permalink
         $this->loader->add_filter( 'post_type_link', $plugin_shared, 'tips_permalinks', 10, 2 ); //TODO New code for permalink
+        $this->loader->add_filter( 'attachment_link', $plugin_shared, 'fix_pod_attachement_link', 20, 2 ); //TODO New code for permalink
         $this->loader->add_filter( 'pods_api_pre_save_pod_item_pronostique', $plugin_shared, 'fix_cote_comma_float', 10, 3);
         $this->loader->add_filter( 'pods_api_pre_save_pod_item_pronostique', $plugin_shared, 'validate_form', 10, 3);
         $this->loader->add_filter( 'pre_get_posts', $plugin_shared, 'add_custom_types' );
@@ -204,8 +208,9 @@ class Pronostique {
 		$this->loader->add_action( 'widgets_init', $plugin_public, 'register_widgets' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
-        $this->loader->add_filter( 'pre_get_posts', $plugin_public, 'hide_vip_post' );
-
+    $this->loader->add_filter( 'pre_get_posts', $plugin_public, 'hide_vip_post' );
+		$this->loader->add_filter( 'wpseo_prev_rel_link', $plugin_public, 'remove_sport_compet_archive_link');
+		$this->loader->add_filter( 'wpseo_next_rel_link', $plugin_public, 'remove_sport_compet_archive_link');
 	}
 
 	/**

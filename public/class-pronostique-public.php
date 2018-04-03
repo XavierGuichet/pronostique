@@ -69,8 +69,12 @@ class Pronostique_Public
     {
         wp_register_script($this->plugin_name, plugin_dir_url(__FILE__).'js/pronostique-public.js', array('jquery'), $this->version, true);
 
-        $select_table = $this->getCompetionRelationship();
-        wp_localize_script($this->plugin_name, 'php_vars', $select_table );
+        if(is_page('formulaire-experts') || is_page('formulaire-pronostics')) {
+            wp_register_script($this->plugin_name."-form", plugin_dir_url(__FILE__).'js/pronostic-form-select.js', array('jquery'), $this->version, true);
+            $select_table = $this->getCompetionRelationship();
+            wp_localize_script($this->plugin_name, 'php_vars', $select_table );
+            wp_enqueue_script($this->plugin_name."-form");
+        }
         wp_enqueue_script($this->plugin_name);
     }
 
@@ -133,6 +137,18 @@ class Pronostique_Public
             }
         }
         return $query;
+    }
+
+
+    /**
+     * Remove Yoast Sea pagination related links
+     * Only affect taxonomy specific to pronostic
+     */
+    public function remove_sport_compet_archive_link($rel_link) {
+      if(is_archive() && (is_tax('competition') || is_tax('sport'))) {
+        return '';
+      }
+      return $rel_link;
     }
 
     //######################
@@ -333,58 +349,21 @@ class Pronostique_Public
                                          'limit' => 10,
                                      ), $atts, $tag);
 
-        return $this->getListTop($params['titre'], $params['of_the_month'], $params['limit']);
+        $data = PronoLib::getInstance()->getListTopData($params['of_the_month'], $params['limit']);
+
+        $entetes = '<tr><th>&nbsp;</th> <th>Pseudo</th> <th>Profit</th></tr>';
+
+        $tpl_params = array('titre' => $params['titre'],
+                            'entetes' => $entetes,
+                                'rows' => $data,
+                            );
+
+        return $this->templater->display('classements', $tpl_params);
     }
 
     public function sc_getHotStreakRanking($atts = array(), $content = null, $tag = '')
     {
-        $tips = pods('pronostique')->find(
-                                array(
-                                    'select' => 't.ID, tips_result, author.ID as user_id, author.user_nicename as username',
-                                    'limit' => 0,
-                                    'where' => 'tips_result > 0 AND is_expert != 1 AND is_vip != 1 AND date BETWEEN (CURDATE() - INTERVAL 365 DAY) AND NOW()',
-                                    'orderby' => 'user_id DESC, date DESC',
-                                )
-        );
-
-        $res2letter = array(1 => 'V', 2 => 'P', 3 => 'N');
-        $hotStreaks_by_uid = array();
-
-        // create array with hotstreak of all tipster
-        while ($tips->fetch()) {
-            $user_id = $tips->field('user_id');
-            if (!isset($hotStreaks_by_uid[$user_id])) {
-                $hotStreaks_by_uid[$user_id] = array(
-                                    'V' => 0,
-                                    'P' => 0,
-                                    'N' => 0,
-                                    'tips_count' => 0,
-                                    'display_name' => $tips->field('username'),
-                                    'user_id' => $user_id,
-                                    );
-            }
-            if ($hotStreaks_by_uid[$user_id]['tips_count'] >= 20) {
-                continue;
-            }
-            $hotStreaks_by_uid[$user_id]['tips_count'] += 1;
-            $letter = $res2letter[$tips->field('tips_result')];
-            $hotStreaks_by_uid[$user_id][$letter] += 1;
-        }
-
-        // create an array in which value are hot-streak string
-        $best_id = array();
-        foreach ($hotStreaks_by_uid as $uid => $user_hot_streak) {
-            $best_id[$uid] = sprintf('%02d-%02d-%02d', $user_hot_streak['V'], $user_hot_streak['N'], $user_hot_streak['P']);
-        }
-        // order that array and keep first 25
-        arsort($best_id);
-        $best_id = array_slice($best_id, 0, 25, true);
-
-        // get hotstreak complete information and add them to the outputed array;
-        $best_hotstreak = array();
-        foreach ($best_id as $uid => $v2) {
-            $best_hotstreak[] = $hotStreaks_by_uid[$uid];
-        }
+        $best_hotstreak = PronoLib::getInstance()->getHotStreakRankingData();
 
         $entetes = '<tr><th>&nbsp;</th> <th>Pseudo</th> <th>Série</th></tr>';
 
@@ -583,30 +562,6 @@ class Pronostique_Public
                             'gain_global' => $gain_global, ));
     }
 
-    public function getListTop($titre = 'Top tipsters du mois', $of_the_month = true, $max = 10)
-    {
-        $cond_month = $of_the_month == 'true' ? ' AND MONTH(date) = MONTH(NOW()) AND YEAR(date) = YEAR(NOW())' : '';
-
-        $pronos = pods('pronostique')->find(
-            array(
-                'select' => 'ROUND(SUM( IF(tips_result = 1, (cote-1)*mise, IF(tips_result = 2, - mise, IF(tips_result = 3, 0, 0))) ), 2) AS Gain, t.*',
-                'where' => 'tips_result > 0 AND is_expert = 0 '.$cond_month,
-                'limit' => $max,
-                'orderby' => 'Gain Desc',
-                'groupby' => 'author.id',
-            )
-            );
-
-        $entetes = '<tr><th>&nbsp;</th> <th>Pseudo</th> <th>Profit</th></tr>';
-
-        $tpl_params = array('titre' => $titre,
-                            'entetes' => $entetes,
-                                'row' => $pronos,
-                            );
-
-        return $this->templater->display('classements', $tpl_params);
-    }
-
     public function getPronostics($user_id = null, $sport = null, $exclude_sport = null, $competition = null, $month = null, $hidetips = null, $hideexpert = null, $hidevip = null, $viponly = null, $with_result = null, $offset = 0, $limit = null, $onlycomming = null, $sort_order = 'ASC')
     {
         $params = array(
@@ -675,13 +630,19 @@ class Pronostique_Public
 
     // NOTE : new function
     private function getCompetionRelationship() {
-        $competition_pod = pods('competition')->find();
+        $competitions = pods('competition',
+            array('select' => 't.term_id as competition_id,
+                sport.term_id as sport_id,
+                country.term_id as country_id
+                ',
+                'limit' => -1)
+        )->data();
         $competitionRelationship = array();
-        if($competition_pod->total() > 0) {
-            while( $competition_pod->fetch() ) {
-                $competition_id = $competition_pod->field('id');
-                $sport_id = $competition_pod->field('sport.term_id');
-                $country_id = $competition_pod->field('country.term_id');
+        if(count($competitions) > 0) {
+            foreach( $competitions as $competition ) {
+                $competition_id = $competition->competition_id;
+                $sport_id = $competition->sport_id;
+                $country_id = $competition->country_id;
                 if(!isset($competitionRelationship[$sport_id])) {
                     $competitionRelationship[$sport_id] = array();
                 }
