@@ -119,7 +119,7 @@ class Pronostique_Shared
             $pod_post_field_id = $pod_post_field[0]['id'];
             // Limite la recherche par le pronostique en partant de la table des relations pour trouvé le pronostique lié au prono-post
             $infos = pods( 'pronostique', array(
-                    'select' => 't.id as prono_id, `prono_post_rel`.*, sport.slug as sport, competition.slug as competition',
+                    'select' => 't.id as prono_id, t.archive as archive, `prono_post_rel`.*, sport.slug as sport, sport.term_id as sport_term_id, competition.slug as competition, competition.term_id as competition_term_id',
                     'join' => 'LEFT JOIN `wp_podsrel` AS `prono_post_rel` ON `prono_post_rel`.`related_field_id` = '.$pod_post_field_id.' AND `prono_post_rel`.`item_id` = '.$post->ID,
                     'where' => 't.id = `prono_post_rel`.`related_item_id`'
                     // 'where' => '`rel_sport`.`item_id` = t.id AND `rel_competition`.`item_id` = t.id AND t.id = `prono_post_rel`.`related_item_id`'
@@ -137,6 +137,29 @@ class Pronostique_Shared
                 $competition = (is_null($infos->competition) ? '' : $infos->competition."/");
                 $permalink = str_replace( '%sport%', $sport, $permalink );
                 $permalink = str_replace( '%competition%/', $competition, $permalink );
+                if($infos->archive) {
+                  if($infos->competition_term_id) {
+                    $competition_term = get_term_by('term_taxonomy_id', $infos->competition_term_id + 1);
+                    if($competition_term) {
+                      return get_term_link($competition_term);
+                    }
+                  }
+                  if($infos->sport_term_id) {
+                    $sport_term = get_term_by('term_taxonomy_id', $infos->sport_term_id + 1);
+                    if($sport_term) {
+                      return get_term_link($sport_term);
+                    }
+                  }
+                  $main_prono_page_slug = 'pronostic';
+                  $args = array(
+                    'name'        => $main_prono_page_slug,
+                    'post_type'   => 'page',
+                    'post_status' => 'publish',
+                    'numberposts' => 1
+                  );
+                  $my_posts = get_posts($args);
+                  return get_page_link($my_posts[0]);
+                }
                 return $permalink;
             }
 

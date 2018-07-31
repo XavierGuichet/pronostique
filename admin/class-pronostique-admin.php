@@ -65,6 +65,7 @@ class Pronostique_Admin {
 	 */
 	public function enqueue_styles() {
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/pronostique-admin.css', array(), $this->version, 'all' );
+		wp_enqueue_style( 'jquery-ui-datepicker' );
 	}
 
 	/**
@@ -74,6 +75,7 @@ class Pronostique_Admin {
 	 */
 	public function enqueue_scripts() {
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/pronostique-admin.js', array( 'jquery','jquery-form' ), $this->version, false );
+		wp_enqueue_script( 'field-date-js', plugin_dir_url( __FILE__ ) . 'js/field-date.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-datepicker' ), $this->version, false );
         wp_localize_script( $this->plugin_name, 'prono_ajax_object',
             array( 'ajax_url' => admin_url( 'admin-ajax.php' ), 'nonce' => wp_create_nonce( 'pronostique-quick-edit' ), 'action' => 'quick_edit_pronostique' ) );
 
@@ -261,8 +263,43 @@ class Pronostique_Admin {
 						$formresult = PronoLib::getInstance()->refreshAllData();
         }
 
+				$archive_before = '';
+				if (isset($_POST['calc_nb_archive'])) {
+					check_admin_referer('pronostics-archive');
+					$archive_before = $_POST['archive_before'];
+					$date_archive_before = DateTime::createFromFormat('d-m-Y', $archive_before);
+					$date_archive_before->setTime(2,0,0);
+					$to_archive_params = array(
+			        'limit'   => 0,
+							'where'=> "archive = 0 AND date < '".$date_archive_before->format("Y-m-d H:i:s")."'"
+			    );
+					$to_archive_tips = pods( 'pronostique', $to_archive_params );
+				}
+
+				if (isset($_POST['do_archive'])) {
+					check_admin_referer('pronostics-archive');
+					$do_archive_before = $_POST['archive_before'];
+					$date_archive_before = DateTime::createFromFormat('d-m-Y', $do_archive_before);
+					$date_archive_before->setTime(2,0,0);
+					$query = "UPDATE `wp_pods_pronostique` SET `archive`= 1 WHERE `date` < '".$date_archive_before->format("Y-m-d H:i:s")."'";
+					global $wpdb;
+					$wpdb->query($query);
+				}
+
+
+
+
+				$params = array(
+		        'limit'   => 3,
+		        'orderby' => 't.name',
+						'where'=> "archive = 1"
+		    );
+
+		    $archive_tips = pods( 'pronostique', $params );
+
         $formnonce_default_cat = function_exists('wp_nonce_field') ? wp_nonce_field('pronostics-set-default-cat') : '';
         $formnonce_cache_handling = function_exists('wp_nonce_field') ? wp_nonce_field('pronostics-cache-handling') : '';
+        $formnonce_archive = function_exists('wp_nonce_field') ? wp_nonce_field('pronostics-archive') : '';
 
         $categories = get_categories(array('hide_empty' => 0));
         $prono_expert_cat = get_option("prono_expert_default_category", 0);
