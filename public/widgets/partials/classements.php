@@ -18,7 +18,7 @@ foreach($rows as $key => $row) {
             <div class="mise" style="background-color:<?=$color?>;"><?=$i?></div>
         </td>
         <td style="width:70%;">
-            <a class="none" href="/tipser-stats/?&id=<?=$row->author_id?>"><?=$row->author_usernicename?></a>
+            <a class="none" href="/tipser-stats/?id=<?=$row->author_id?>"><?=$row->author_usernicename?></a>
         </td>
         <td style="width:20%;"><?=TipsFormatter::prefixSign($row->Gain)?></td>
     </tr>

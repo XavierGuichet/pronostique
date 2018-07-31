@@ -17,7 +17,7 @@ foreach($row as $user_stat) {
             <div class="mise" style="background-color:<?=$color?>;"><?=$i?></div>
         </td>
         <td style="width:70%;">
-            <a class="none" href="/tipser-stats/?&id=<?=$user_stat->user_id?>"><?=$user_stat->name?></a>
+            <a class="none" href="/tipser-stats/?id=<?=$user_stat->user_id?>"><?=$user_stat->name?></a>
         </td>
         <td style="width:70%;">
             <?=$user_stat->yield?>%
