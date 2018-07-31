@@ -49,6 +49,11 @@ class Pronostique_Shared
         $this->version = '';
     }
 
+    public function cron_cache_clear() {
+      PronoLib::getInstance()->refreshTaxonomiesFilterData();
+      PronoLib::getInstance()->refreshAllData();
+    }
+
     // Force opening comments
     public function prono_comment_open($open, $post_id)
     {
@@ -105,12 +110,25 @@ class Pronostique_Shared
             add_rewrite_rule('pronostic/([^/]+?)/([^/]+?)/([^/]+?)/$', 'index.php?sport=$matches[1]&competition=$matches[2]&prono-post=$matches[3]', 'bottom');
     }
 
-    // NOTE : New code for permalink
     public function tips_permalinks( $permalink, $post ) {
         if($post->post_type === 'prono-post') {
-            $prono = get_post_meta($post->ID, 'pronostique', true);
-            if($prono) {
-                $infos = pods( 'pronostique', array('select' => 'sport.slug as sport, competition.slug as competition', 'where' => 't.id = '.$prono['id']))->data();
+            // recupère l'id du field post des pronostique
+            // Attention, on ne recupère pas la valeur du field mais bien l'identifiant du field
+            $pod_post_field = pods_api( 'pronostique')->load_fields(array('name' => 'post'));
+            sort($pod_post_field);
+            $pod_post_field_id = $pod_post_field[0]['id'];
+            // Limite la recherche par le pronostique en partant de la table des relations pour trouvé le pronostique lié au prono-post
+            $infos = pods( 'pronostique', array(
+                    'select' => 't.id as prono_id, `prono_post_rel`.*, sport.slug as sport, competition.slug as competition',
+                    'join' => 'LEFT JOIN `wp_podsrel` AS `prono_post_rel` ON `prono_post_rel`.`related_field_id` = '.$pod_post_field_id.' AND `prono_post_rel`.`item_id` = '.$post->ID,
+                    'where' => 't.id = `prono_post_rel`.`related_item_id`'
+                    // 'where' => '`rel_sport`.`item_id` = t.id AND `rel_competition`.`item_id` = t.id AND t.id = `prono_post_rel`.`related_item_id`'
+                  )
+                    )->data();
+            // if($post->ID === 47624) {
+            //   var_dump(get_post_status($post->ID));
+            // }
+            if($infos) {
                 if(!isset($infos[0])) {
                     return $permalink;
                 }
@@ -121,6 +139,7 @@ class Pronostique_Shared
                 $permalink = str_replace( '%competition%/', $competition, $permalink );
                 return $permalink;
             }
+
             $sport = (is_null($sport) ? 'divers' : $sport);
             $competition = (is_null($competition) ? '' : $competition."/");
             $permalink = str_replace( '%sport%', $sport, $permalink );
@@ -185,6 +204,16 @@ class Pronostique_Shared
                     return pods_error($message);
                 }
             }
+            if (isset($pieces[ 'fields' ][ 'date' ][ 'value' ]) && !current_user_can('manage_options')) {
+              // Force time zone
+              date_default_timezone_set('Europe/Paris');
+              $match_date = $pieces[ 'fields' ][ 'date' ][ 'value' ];
+              $match_time = strtotime($match_date);
+              $nowPlus1Hour = time() + 3600;
+              if(($nowPlus1Hour - $match_time) > 0) {
+                return pods_error("La date du match (ou compétition) doit être dans au moins une heure.");
+              }
+            }
         }
         return $pieces;
     }
@@ -237,10 +266,8 @@ class Pronostique_Shared
                 $post_author = $prono->field('author.ID');
             }
 
-            $date = date('Y-m-d H:i:s');
-            if(strtotime($prono->field('date')) < strtotime( "2017-08-20")) {
-                $date = $prono->field('date');
-            }
+            // $time = strtotime("-1 hour", time());
+            // $date = date('Y-m-d H:i:s', $time);
             $new_post = array(
                 'post_title' => $post_title,
                 'post_content' => $post_content,
@@ -250,6 +277,10 @@ class Pronostique_Shared
                 'post_type' => 'prono-post',
                 'meta_input' => array('pronostique' => $id)
             );
+            if(strtotime($prono->field('date')) < strtotime( "2017-08-20")) {
+              $new_post['post_date'] = $prono->field('date');
+            }
+
             $post_id = wp_insert_post($new_post);
             $prono->save(array('post' => $post_id));
         }

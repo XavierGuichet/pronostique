@@ -26,44 +26,20 @@ class TopVip_Widget extends WP_Widget {
 	public function widget( $args, $instance ) {
         $widget_title = '';
         $table_title = '';
-        $of_the_month = true;
         $max = 10;
 
-		if ( ! empty( $instance['title'] ) ) {
-			$widget_title = $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'];
-		}
-		if ( ! empty( $instance['table_title'] ) ) {
-			$table_title = $instance['table_title'];
-		}
+				if ( ! empty( $instance['title'] ) ) {
+					$widget_title = $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'];
+				}
+				if ( ! empty( $instance['table_title'] ) ) {
+					$table_title = $instance['table_title'];
+				}
 
-		if ( ! empty( $instance['limit_count'] ) ) {
-			$max = intval($instance['limit_count']);
-		}
-        // TODO : change to MONTH(NOW) and YEAR(NOW)
+				if ( ! empty( $instance['limit_count'] ) ) {
+					$max = intval($instance['limit_count']);
+				}
 
-        $user_results = pods('pronostique')->find(
-            array(
-                'select' => 'ROUND(SUM( IF(tips_result = 1, (cote-1)*mise, IF(tips_result = 2, - mise, IF(tips_result = 3, 0, 0))) ), 2) AS Gain, SUM(mise) as Mise_total, t.*',
-                'where' => 'tips_result > 0 AND is_vip = 1',
-                'orderby' => 'Gain Desc',
-                'groupby' => 'author.id',
-            )
-        );
-
-        $top_vips = array();
-
-        while($user_results->fetch() ) {
-            $top_vips[] = array(
-                'user_id' => $user_results->display('author.ID'),
-                'name' => $user_results->display('author.user_nicename'),
-                'gain' => $user_results->display('Gain'),
-                'yield' => Calculator::Yield($user_results->field('Mise_total'),$user_results->field('Gain'))
-            );
-        }
-
-        uasort($top_vips, 'topvip_yieldsort');
-
-
+				$data = PronoLib::getInstance()->getVipTopData($max);
 
         $entetes = '<tr><th>&nbsp;</th> <th>Pseudo</th> <th>Yield</th><th>Profit</th></tr>';
 
@@ -73,7 +49,7 @@ class TopVip_Widget extends WP_Widget {
                     'widget_title' => $widget_title,
                     'titre' => $table_title,
                     'entetes' => $entetes,
-                    'row' => $top_vips,
+                    'row' => $data,
                     'after_widget' => $args['after_widget']
                     );
 
@@ -126,7 +102,4 @@ class TopVip_Widget extends WP_Widget {
 		return $instance;
 	}
 
-} // class Foo_Widget
-function topvip_yieldsort($a,$b) {
-    return ($a['yield'] < $b['yield']);
 }

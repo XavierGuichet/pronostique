@@ -1,50 +1,61 @@
-<div>
+<div class="history-graph-wrapper">
 <script src="/wp-content/plugins/pronostiques/Chart.min.js"></script>
-<h5 class="graphtitle">Evolution du profit sur les 50 derniers paris</h5>
-<canvas id="buyers" width="720" height="180"></canvas>
-
+<h5 class="graphtitle">Evolution du profit sur les 40 derniers paris</h5>
+<div class="history-graph-container">
+<canvas id="buyers" width="720" height="200"></canvas>
+</div>
 <script>
-var options = {
-scaleOverlay : false,
-scaleOverride : false,
-scaleLineColor : "rgba(0,0,0,.1)",
-scaleLineWidth : 1,
-scaleShowLabels : true,
-scaleLabel : "<%=value%>",
-scaleFontFamily : "\'Arial\'",
-scaleFontSize : 12,
-scaleFontStyle : "normal",
-scaleFontColor : "#666",
-scaleShowGridLines : true,
-scaleGridLineColor : "rgba(0,0,0,.08)",
-scaleGridLineWidth : 1,
-bezierCurve : true,
-pointDot : true,
-pointDotRadius : 3,
-pointDotStrokeWidth : 0,
-datasetStroke : false,
-datasetStrokeWidth : 1,
-datasetFill : true,
-animation : false
-};
+var dataset = [<?=$graphdata?>];
+let minDataValue = Math.min.apply(null,dataset);
+minDataValue = Math.floor((minDataValue) / 5) * 5;
 
-var data = {
-labels : [<?=$labels?>],
-datasets : [
-    {
-        strokeColor : "rgba(95, 140, 163, 1)",
-        pointColor : "rgba(95, 140, 163, 1)",
-        fillColor: "rgba(95, 140, 163, 1)",
-        pointHighlightFill: "#fff",
-        pointHighlightStroke: "rgba(95, 140, 163, 1)",
-        pointStrokeColor : "#fff",
-        data : [<?=$graphdata?>]
+var ctx = document.getElementById('buyers').getContext('2d');
+var myChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [<?=$labels?>],
+        datasets: [{
+            label: '',
+            data : dataset,
+            lineTension: 0.5,
+            backgroundColor: 'rgba(95, 140, 163, 1)',
+            borderColor: 'rgba(95, 140, 163, 1)',
+            fillColor: 'rgba(95, 140, 163, 1)',
+            pointBackgroundColor: 'rgba(95, 140, 163, 1)',
+            pointBorderColor: '#fff',
+            borderWidth: 1,
+            fill: 'start'
+        }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      responsiveAnimationDuration: 0,
+      title: {
+        display: false,
+      },
+      legend: {
+        display: false,
+      },
+      animation: {
+          duration: 0,
+      },
+      tooltips: {
+        displayColors: false,
+      },
+      scales: {
+          gridLines: [{
+            color: 'rgba(0,0,0,.1)'
+          }],
+          yAxes: [{
+              ticks: {
+                  min: minDataValue,
+                  stepSize: 5,
+                  showLabelBackdrop: false
+              },
+              stacked: true
+          }]
+      }
     }
-]
-
-};
-
-var ctx = document.getElementById("buyers").getContext("2d");
-new Chart(ctx).Line(data,options);
+});
 </script>
 </div>

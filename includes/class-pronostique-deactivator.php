@@ -30,7 +30,8 @@ class Pronostique_Deactivator {
 	 * @since    1.0.0
 	 */
 	public static function deactivate() {
-
+		$timestamp = wp_next_scheduled( 'cps_cron_hook' );
+ 		wp_unschedule_event( $timestamp, 'cps_cron_hook' );
 	}
 
 }

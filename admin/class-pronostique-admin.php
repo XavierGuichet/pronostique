@@ -197,6 +197,7 @@ class Pronostique_Admin {
             if ($prono->field('post')) {
                 $post_id = $prono->field('post.ID');
                 wp_set_object_terms($post_id, intval($prono->field('sport.term_id')), 'sport', false);
+                wp_set_object_terms($post_id, intval($prono->field('competition.term_id')), 'competition', false);
             }
         }
         $success = (count($errors) == 0 ? 1 : 0);

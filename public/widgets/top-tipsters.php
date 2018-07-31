@@ -29,39 +29,30 @@ class TopTipster_Widget extends WP_Widget {
         $of_the_month = true;
         $max = 10;
 
-		if ( ! empty( $instance['title'] ) ) {
-			$widget_title = $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'];
-		}
-		if ( ! empty( $instance['table_title'] ) ) {
-			$table_title = $instance['table_title'];
-		}
-		if ( ! empty( $instance['limit_to_month'] ) ) {
-			$limit_to_month = ($instance['limit_to_month'] ? true : false);
-		}
-		if ( ! empty( $instance['limit_count'] ) ) {
-			$max = intval($instance['limit_count']);
-		}
-        $cond_month = $limit_to_month == 'true' ? ' AND MONTH(date) = MONTH(NOW()) AND YEAR(date) = YEAR(NOW())' : '';
+				if ( ! empty( $instance['title'] ) ) {
+					$widget_title = $args['before_title'] . apply_filters( 'widget_title', $instance['title'] ) . $args['after_title'];
+				}
+				if ( ! empty( $instance['table_title'] ) ) {
+					$table_title = $instance['table_title'];
+				}
+				if ( ! empty( $instance['limit_to_month'] ) ) {
+					$limit_to_month = ($instance['limit_to_month'] ? true : false);
+				}
+				if ( ! empty( $instance['limit_count'] ) ) {
+					$max = intval($instance['limit_count']);
+				}
 
-        $pronos = pods('pronostique')->find(
-            array(
-                'select' => 'ROUND(SUM( IF(tips_result = 1, (cote-1)*mise, IF(tips_result = 2, - mise, IF(tips_result = 3, 0, 0))) ), 2) AS Gain, t.*',
-                'where' => 'tips_result > 0 AND is_expert = 0 '.$cond_month,
-                'limit' => $max,
-                'orderby' => 'Gain Desc',
-                'groupby' => 'author.id',
-            )
-            );
+
+				$data = PronoLib::getInstance()->getListTopData($of_the_month, $max);
 
         $entetes = '<tr><th>&nbsp;</th> <th>Pseudo</th> <th>Profit</th></tr>';
-
 
         $tpl_params = array(
                     'before_widget' => $args['before_widget'],
                     'widget_title' => $widget_title,
                     'titre' => $table_title,
                     'entetes' => $entetes,
-                    'row' => $pronos,
+                    'rows' => $data,
                     'after_widget' => $args['after_widget']
                     );
 

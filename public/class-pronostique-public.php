@@ -169,7 +169,7 @@ class Pronostique_Public
                                      null, //viponly
                                      1, //avec resultat
                                      0, //offset
-                                     50, //limit
+                                     40, //limit
                                      null,
                                      'DESC');
 
@@ -178,7 +178,7 @@ class Pronostique_Public
         $cumulated_profit = 0;
         if($tips->total()) {
             $tips = array_reverse($tips->data());
-            foreach($tips as $tip) {
+            foreach($tips as $key => $tip) {
                 $profit = 0;
                 if (intval($tip->tips_result) == 1) {
                     $profit = $tip->mise * ($tip->cote - 1);
@@ -187,6 +187,7 @@ class Pronostique_Public
                 }
                 $cumulated_profit = floatval($cumulated_profit) + floatval($profit);
                 $graph_data[] = $cumulated_profit;
+                // $graph_data[] = $cumulated_profit;
             }
         } else {
             $graph_data[] = 0;

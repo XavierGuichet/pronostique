@@ -30,7 +30,9 @@ class Pronostique_Activator {
 	 * @since    1.0.0
 	 */
 	public static function activate() {
-
+		if ( ! wp_next_scheduled( 'cps_cron_hook' ) ) {
+				wp_schedule_event(time(), 'twicedaily', 'cps_cron_hook', array());
+		}
 	}
 
 }

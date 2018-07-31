@@ -75,7 +75,9 @@ class Pronostique {
 		$this->set_locale();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
-        $this->define_shared_hooks();
+    $this->define_shared_hooks();
+
+		$this->setCronNextExecution(); // TODO : remove after deployement
 
 	}
 
@@ -160,6 +162,7 @@ class Pronostique {
 	private function define_shared_hooks() {
 		$plugin_shared = new Pronostique_Shared( $this->get_plugin_name(), $this->get_version() );
 
+        $this->loader->add_action( 'cps_cron_hook', $plugin_shared, 'cron_cache_clear' );
         $this->loader->add_action( 'parse_request', $plugin_shared, 'handle_rewrite_conflit' );
         // $this->loader->add_action( 'parse_query', $plugin_shared, 'handle_rewrite_conflit_query' );
         $this->loader->add_action( 'save_post', $plugin_shared, 'update_comments_meta' );
@@ -211,6 +214,14 @@ class Pronostique {
     $this->loader->add_filter( 'pre_get_posts', $plugin_public, 'hide_vip_post' );
 		$this->loader->add_filter( 'wpseo_prev_rel_link', $plugin_public, 'remove_sport_compet_archive_link');
 		$this->loader->add_filter( 'wpseo_next_rel_link', $plugin_public, 'remove_sport_compet_archive_link');
+	}
+
+	// TODO : remove after deployement
+	private function setCronNextExecution() {
+		$cronTimestamp = wp_next_scheduled( 'cps_cron_hook' );
+		if($cronTimestamp === false) {
+			wp_schedule_event(time(), 'twicedaily', 'cps_cron_hook', array());
+		}
 	}
 
 	/**

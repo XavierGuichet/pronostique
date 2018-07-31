@@ -8,12 +8,14 @@
         country_select = $('select[name=pods_field_country]');
         competition_select = $('select[name=pods_field_competition]');
 
-        if (!country_select.val()) {
+        if (!country_select.val() || country_select.val() == 0) {
             country_select.prop('disabled', true);
         }
-        if (!competition_select.val()) {
+
+        if (!competition_select.val() || competition_select.val() == 0) {
             competition_select.prop('disabled', true);
         }
+
 
         sport_select.change(limit_country);
         country_select.change(limit_competition);

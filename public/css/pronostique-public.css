@@ -101,8 +101,13 @@ a:hover .home_expert_title {
  * Pods Form
  */
 
-.entry-content li.pods-field, .pods-field, p.pods-add-file {
-    overflow: auto;
+.entry-content li.pods-field:after, .pods-field:after, p.pods-add-file:after {
+  visibility: hidden;
+  display: block;
+  font-size: 0;
+  content: " ";
+  clear: both;
+  height: 0;
 }
 
 .pods-form-front .pods-field-label {
@@ -284,4 +289,10 @@ Prono post
 }
 .tips_summary {
     clear: both;
+}
+
+
+.history-graph-container {
+  width: 100%;
+  max-height: 200px;
 }
